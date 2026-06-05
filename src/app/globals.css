@@ -1,26 +1,303 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   FastApp — Global Design System
+   Tailwind CSS v4  ·  Dark-mode-first  ·  Glassmorphism + Bento-grid
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Google Fonts (must come before @import "tailwindcss") ───────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* ── Tailwind v4 theme tokens ─────────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* ── Colour palette ─────────────────────────────────────────────────────── */
+
+  /* Brand / accent — indigo-violet gradient family */
+  --color-brand-50: oklch(0.97 0.02 270);
+  --color-brand-100: oklch(0.93 0.05 270);
+  --color-brand-200: oklch(0.87 0.10 270);
+  --color-brand-300: oklch(0.79 0.16 270);
+  --color-brand-400: oklch(0.69 0.22 270);
+  --color-brand-500: oklch(0.60 0.27 270);   /* primary */
+  --color-brand-600: oklch(0.53 0.28 270);
+  --color-brand-700: oklch(0.45 0.26 270);
+  --color-brand-800: oklch(0.36 0.22 270);
+  --color-brand-900: oklch(0.28 0.17 270);
+
+  /* Neutral dark surface scale */
+  --color-surface-950: oklch(0.08 0.005 270);   /* deepest bg */
+  --color-surface-900: oklch(0.11 0.007 270);   /* page bg */
+  --color-surface-800: oklch(0.14 0.008 270);   /* sidebar / panel */
+  --color-surface-700: oklch(0.18 0.010 270);   /* card bg */
+  --color-surface-600: oklch(0.23 0.012 270);   /* card hover */
+  --color-surface-500: oklch(0.30 0.012 270);   /* border */
+  --color-surface-400: oklch(0.40 0.010 270);   /* muted border */
+  --color-surface-300: oklch(0.55 0.008 270);   /* muted text */
+  --color-surface-200: oklch(0.72 0.005 270);   /* secondary text */
+  --color-surface-100: oklch(0.88 0.003 270);   /* primary text */
+  --color-surface-50:  oklch(0.96 0.001 270);   /* high-contrast text */
+
+  /* Semantic aliases (dark-mode-first, overridden in :root light if needed) */
+  --color-background: var(--color-surface-900);
+  --color-foreground: var(--color-surface-100);
+
+  --color-card:         var(--color-surface-700);
+  --color-card-hover:   var(--color-surface-600);
+  --color-border:       var(--color-surface-500);
+  --color-border-muted: var(--color-surface-400);
+
+  --color-muted:    var(--color-surface-700);
+  --color-muted-fg: var(--color-surface-300);
+
+  --color-primary:    var(--color-brand-500);
+  --color-primary-fg: oklch(1 0 0);
+
+  --color-destructive:    oklch(0.63 0.21 25);
+  --color-destructive-fg: oklch(1 0 0);
+
+  --color-success:    oklch(0.65 0.20 145);
+  --color-success-fg: oklch(1 0 0);
+
+  --color-warning:    oklch(0.75 0.18 75);
+  --color-warning-fg: oklch(0.15 0 0);
+
+  /* ── Radius ──────────────────────────────────────────────────────────────── */
+  --radius-sm: 0.375rem;   /* 6px  */
+  --radius-md: 0.625rem;   /* 10px */
+  --radius-lg: 0.875rem;   /* 14px */
+  --radius-xl: 1.25rem;    /* 20px */
+  --radius-2xl: 1.5rem;    /* 24px */
+
+  /* ── Shadows ─────────────────────────────────────────────────────────────── */
+  --shadow-glow-brand: 0 0 40px -8px oklch(0.60 0.27 270 / 0.45);
+  --shadow-glow-sm:    0 0 15px -4px oklch(0.60 0.27 270 / 0.25);
+
+  /* ── Animations ─────────────────────────────────────────────────────────── */
+  --duration-fast:   150ms;
+  --duration-normal: 250ms;
+  --duration-slow:   400ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base reset ───────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  font-feature-settings: "cv11", "ss01", "zero";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;  /* 15px base */
+  line-height: 1.6;
 }
+
+/* ── Glassmorphism utilities ──────────────────────────────────────────────── */
+
+.glass {
+  background: oklch(0.14 0.008 270 / 0.55);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid oklch(1 0 0 / 0.06);
+}
+
+.glass-heavy {
+  background: oklch(0.11 0.007 270 / 0.75);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid oklch(1 0 0 / 0.08);
+}
+
+.glass-light {
+  background: oklch(0.18 0.010 270 / 0.40);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid oklch(1 0 0 / 0.05);
+}
+
+/* ── Bento grid helpers ───────────────────────────────────────────────────── */
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.bento-card {
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  transition:
+    background var(--duration-normal) ease,
+    border-color var(--duration-normal) ease,
+    box-shadow var(--duration-normal) ease,
+    transform var(--duration-normal) ease;
+}
+
+.bento-card:hover {
+  background: var(--color-card-hover);
+  border-color: var(--color-brand-700);
+  box-shadow: var(--shadow-glow-sm);
+  transform: translateY(-2px);
+}
+
+/* ── Gradient text ────────────────────────────────────────────────────────── */
+
+.gradient-text {
+  background: linear-gradient(
+    135deg,
+    oklch(0.79 0.16 270) 0%,
+    oklch(0.70 0.22 290) 40%,
+    oklch(0.65 0.24 310) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Brand glow button ────────────────────────────────────────────────────── */
+
+.btn-brand {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.375rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-brand-500), var(--color-brand-600));
+  color: var(--color-primary-fg);
+  border: 1px solid var(--color-brand-400);
+  cursor: pointer;
+  transition:
+    opacity var(--duration-fast) ease,
+    box-shadow var(--duration-normal) ease,
+    transform var(--duration-fast) ease;
+}
+
+.btn-brand:hover {
+  opacity: 0.92;
+  box-shadow: var(--shadow-glow-brand);
+  transform: translateY(-1px);
+}
+
+.btn-brand:active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ── Scrollbar styling ────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-900);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-500);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-600);
+}
+
+/* ── Focus visible ────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Ambient background mesh ──────────────────────────────────────────────── */
+
+.mesh-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%,  oklch(0.45 0.26 270 / 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80%  110%, oklch(0.45 0.26 310 / 0.10) 0%, transparent 70%),
+    var(--color-surface-950);
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────────────── */
+
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: var(--color-surface-800);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-md);
+  color: var(--color-surface-300);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+
+.sidebar-link:hover {
+  background: var(--color-surface-700);
+  color: var(--color-surface-100);
+}
+
+.sidebar-link.active {
+  background: oklch(0.60 0.27 270 / 0.15);
+  color: var(--color-brand-300);
+  border: 1px solid oklch(0.60 0.27 270 / 0.20);
+}
+
+/* ── Keyframe animations ──────────────────────────────────────────────────── */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px -4px oklch(0.60 0.27 270 / 0.3); }
+  50%       { box-shadow: 0 0 35px -4px oklch(0.60 0.27 270 / 0.6); }
+}
+
+.animate-fade-in        { animation: fade-in 0.4s ease forwards; }
+.animate-slide-in-left  { animation: slide-in-left 0.35s ease forwards; }
+.animate-pulse-glow     { animation: pulse-glow 2.5s ease-in-out infinite; }
