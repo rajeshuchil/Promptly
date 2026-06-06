@@ -10,6 +10,8 @@ import {
   Maximize2,
   Copy,
   Check,
+  Download,
+  FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +20,7 @@ interface PreviewToolbarProps {
   onDeviceModeChange: (mode: DeviceMode) => void;
   onRefresh: () => void;
   html: string;
+  projectId?: string | null;
 }
 
 export function PreviewToolbar({
@@ -25,8 +28,11 @@ export function PreviewToolbar({
   onDeviceModeChange,
   onRefresh,
   html,
+  projectId,
 }: PreviewToolbarProps) {
   const [copied, setCopied] = useState(false);
+  const [exportingHtml, setExportingHtml] = useState(false);
+  const [exportingZip, setExportingZip] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -43,6 +49,45 @@ export function PreviewToolbar({
     if (previewWindow) {
       previewWindow.document.write(html);
       previewWindow.document.close();
+    }
+  };
+
+  const handleExportHtml = () => {
+    setExportingHtml(true);
+    try {
+      if (projectId) {
+        // Trigger server-side download
+        const a = document.createElement("a");
+        a.href = `/api/projects/${projectId}/export?format=html`;
+        a.click();
+      } else {
+        // Fallback to client-side Blob download
+        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "index.html";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Failed to export HTML: ", err);
+    } finally {
+      setExportingHtml(false);
+    }
+  };
+
+  const handleExportZip = () => {
+    if (!projectId) return;
+    setExportingZip(true);
+    try {
+      const a = document.createElement("a");
+      a.href = `/api/projects/${projectId}/export?format=zip`;
+      a.click();
+    } catch (err) {
+      console.error("Failed to export ZIP: ", err);
+    } finally {
+      setExportingZip(false);
     }
   };
 
@@ -84,9 +129,9 @@ export function PreviewToolbar({
 
       {/* Frame Status / Title */}
       <div className="hidden sm:block text-xs font-mono text-[var(--color-muted-fg)]">
-        {deviceMode === "desktop" && "Desktop View (100% width)"}
-        {deviceMode === "tablet" && "Tablet View (768px width)"}
-        {deviceMode === "mobile" && "Mobile View (375px width)"}
+        {deviceMode === "desktop" && "Desktop View"}
+        {deviceMode === "tablet" && "Tablet View"}
+        {deviceMode === "mobile" && "Mobile View"}
       </div>
 
       {/* Actions */}
@@ -131,6 +176,32 @@ export function PreviewToolbar({
               <span className="hidden md:inline">Copy HTML</span>
             </>
           )}
+        </Button>
+
+        {/* HTML Export Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-1.5 text-xs text-[var(--color-surface-200)]"
+          onClick={handleExportHtml}
+          disabled={exportingHtml}
+          title="Download Single index.html File"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">Export HTML</span>
+        </Button>
+
+        {/* ZIP Export Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-1.5 text-xs text-[var(--color-surface-200)]"
+          onClick={handleExportZip}
+          disabled={exportingZip || !projectId}
+          title={projectId ? "Download Project ZIP Archive" : "Save project first to download ZIP"}
+        >
+          <FileDown className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">Export ZIP</span>
         </Button>
       </div>
     </div>

@@ -126,6 +126,7 @@ export function PreviewPanel({
               onDeviceModeChange={setDeviceMode}
               onRefresh={handleRefresh}
               html={html}
+              projectId={projectId}
             />
             <div className="flex-1 relative min-h-0">
               <PreviewFrame html={html} deviceMode={deviceMode} />
