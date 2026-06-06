@@ -1,6 +1,13 @@
 export type DeviceMode = "desktop" | "tablet" | "mobile";
 
-export type PreviewStatus = "idle" | "loading" | "success" | "error";
+export type PreviewStatus =
+  | "idle"
+  | "planning"
+  | "generating"
+  | "validating"
+  | "saving"
+  | "success"
+  | "error";
 
 export interface PreviewProject {
   id: string;

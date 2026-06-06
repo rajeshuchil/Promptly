@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { DeviceMode, PreviewStatus } from "./types";
 import { PreviewToolbar } from "./preview-toolbar";
 import { PreviewFrame } from "./preview-frame";
-import { FolderOpen, Sparkles, AlertTriangle, Loader2 } from "lucide-react";
+import { Sparkles, AlertTriangle, Loader2, Database, ShieldAlert, Cpu } from "lucide-react";
 
 interface PreviewPanelProps {
   projectId?: string | null;
@@ -12,6 +12,8 @@ interface PreviewPanelProps {
   isLoading?: boolean;
   error?: string | null;
   onRefresh?: () => void;
+  generationState?: PreviewStatus;
+  generationMessage?: string;
 }
 
 export function PreviewPanel({
@@ -20,6 +22,8 @@ export function PreviewPanel({
   isLoading: initialIsLoading = false,
   error: initialError = null,
   onRefresh,
+  generationState,
+  generationMessage,
 }: PreviewPanelProps) {
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [status, setStatus] = useState<PreviewStatus>("idle");
@@ -60,21 +64,22 @@ export function PreviewPanel({
     fetchProject();
   }, [projectId, refreshTrigger]);
 
-  // Handle direct HTML input (e.g., direct generation results without/before full DB reloading)
+  // Handle direct HTML input (e.g. streaming chunks or direct input)
   useEffect(() => {
-    if (generatedHtml) {
+    if (generatedHtml !== undefined) {
       setHtml(generatedHtml);
-      setStatus("success");
-      setErrorMsg(null);
-    } else if (!projectId) {
-      setHtml(null);
+      if (generatedHtml && !generationState) {
+        setStatus("success");
+      }
     }
-  }, [generatedHtml, projectId]);
+  }, [generatedHtml, generationState]);
 
-  // Update status based on loading state props
+  // Update status based on incoming generationState or other props
   useEffect(() => {
-    if (initialIsLoading) {
-      setStatus("loading");
+    if (generationState) {
+      setStatus(generationState);
+    } else if (initialIsLoading) {
+      setStatus("generating");
     } else if (initialError) {
       setErrorMsg(initialError);
       setStatus("error");
@@ -83,7 +88,7 @@ export function PreviewPanel({
     } else if (!fetchingProject) {
       setStatus("idle");
     }
-  }, [initialIsLoading, initialError, html, fetchingProject]);
+  }, [generationState, initialIsLoading, initialError, html, fetchingProject]);
 
   const handleRefresh = () => {
     if (projectId) {
@@ -94,72 +99,141 @@ export function PreviewPanel({
     }
   };
 
+  const isLiveStreaming = status === "generating" && html;
+
   return (
     <div
       className="flex flex-col h-full w-full rounded-[var(--radius-xl)] overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface-900)] shadow-lg"
       style={{ minHeight: "450px" }}
     >
-      {/* SUCCESS STATE (With frame and toolbar) */}
-      {status === "success" && html && (
+      {/* RENDER PROGRESSIVE STREAMING OR COMPLETED HTML */}
+      {(status === "success" || isLiveStreaming) && html ? (
         <>
-          <PreviewToolbar
-            deviceMode={deviceMode}
-            onDeviceModeChange={setDeviceMode}
-            onRefresh={handleRefresh}
-            html={html}
-          />
-          <div className="flex-1 relative min-h-0">
-            <PreviewFrame html={html} deviceMode={deviceMode} />
+          <div className="relative flex flex-col h-full w-full min-h-0">
+            {isLiveStreaming && (
+              <div className="bg-[var(--color-brand-500)]/10 text-[var(--color-brand-300)] text-[10px] px-3 py-1 flex items-center justify-between border-b border-[var(--color-border)] select-none">
+                <span className="flex items-center gap-1.5 font-medium animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand-400)] shrink-0" />
+                  Live Preview Stream (generating HTML...)
+                </span>
+                <span className="font-mono text-[9px] opacity-75">
+                  {html.length.toLocaleString()} chars
+                </span>
+              </div>
+            )}
+            <PreviewToolbar
+              deviceMode={deviceMode}
+              onDeviceModeChange={setDeviceMode}
+              onRefresh={handleRefresh}
+              html={html}
+            />
+            <div className="flex-1 relative min-h-0">
+              <PreviewFrame html={html} deviceMode={deviceMode} />
+            </div>
           </div>
         </>
-      )}
-
-      {/* LOADING STATE */}
-      {status === "loading" && (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-pulse">
-          <Loader2 className="w-12 h-12 text-[var(--color-brand-400)] animate-spin mb-4" />
-          <h3 className="text-base font-semibold text-[var(--color-surface-100)] mb-1">
-            Rendering your website...
-          </h3>
-          <p className="text-xs text-[var(--color-muted-fg)] max-w-xs">
-            Preparing container and setting up responsive frames.
-          </p>
-        </div>
-      )}
-
-      {/* ERROR STATE */}
-      {status === "error" && (
+      ) : (
+        /* RENDER PRE-GENERATION OR LOADING STATES */
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[var(--color-surface-950)]">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-rose-500/12 text-rose-500 mb-4">
-            <AlertTriangle className="w-6 h-6" />
-          </div>
-          <h3 className="text-base font-semibold text-[var(--color-surface-100)] mb-1">
-            Preview Error
-          </h3>
-          <p className="text-xs text-rose-400 max-w-md mb-4 font-mono break-all">
-            {errorMsg || "An error occurred while loading the preview."}
-          </p>
-        </div>
-      )}
+          {/* PLANNING STATE */}
+          {status === "planning" && (
+            <div className="space-y-4">
+              <Cpu className="w-12 h-12 text-[var(--color-brand-400)] animate-spin mx-auto" />
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
+                  Planning Layout Strategy
+                </h3>
+                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
+                  {generationMessage || "Determining components, sections, and color palettes..."}
+                </p>
+              </div>
+            </div>
+          )}
 
-      {/* IDLE / EMPTY STATE */}
-      {status === "idle" && (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[var(--color-surface-950)]">
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-            style={{ background: "oklch(0.60 0.27 270 / 0.12)" }}
-          >
-            <Sparkles
-              className="w-7 h-7"
-              style={{ color: "var(--color-brand-400)" }}
-            />
-          </div>
-          <p className="text-[var(--color-surface-200)] font-semibold mb-1">
-            Preview Ready
-          </p>
-          <p className="text-xs text-[var(--color-muted-fg)] max-w-xs">
-            Submit a prompt on the left to generate a preview or select a saved project to view.
-          </p>
+          {/* GENERATING CHUNKS (BEFORE HTML STARTS YIELDING) */}
+          {status === "generating" && !html && (
+            <div className="space-y-4">
+              <Loader2 className="w-12 h-12 text-[var(--color-brand-400)] animate-spin mx-auto" />
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
+                  Starting Generator
+                </h3>
+                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
+                  {generationMessage || "Spinning up generative engine..."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* VALIDATING STATE */}
+          {status === "validating" && (
+            <div className="space-y-4">
+              <ShieldAlert className="w-12 h-12 text-[var(--color-brand-400)] animate-bounce mx-auto" />
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
+                  Validating Web markup
+                </h3>
+                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
+                  {generationMessage || "Running HTML validator and auto-repair services..."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* SAVING STATE */}
+          {status === "saving" && (
+            <div className="space-y-4">
+              <Database className="w-12 h-12 text-[var(--color-brand-400)] animate-pulse mx-auto" />
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
+                  Persisting Generation
+                </h3>
+                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
+                  {generationMessage || "Saving successfully validated site to database..."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ERROR STATE */}
+          {status === "error" && (
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-rose-500/12 text-rose-500 mx-auto">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
+                  Generation Failed
+                </h3>
+                <p className="text-xs text-rose-400 max-w-md mx-auto font-mono break-words">
+                  {errorMsg || "An unexpected error occurred during generation."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* IDLE / EMPTY STATE */}
+          {status === "idle" && (
+            <div className="space-y-4">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
+                style={{ background: "oklch(0.60 0.27 270 / 0.12)" }}
+              >
+                <Sparkles
+                  className="w-7 h-7"
+                  style={{ color: "var(--color-brand-400)" }}
+                />
+              </div>
+              <div>
+                <p className="text-[var(--color-surface-200)] font-semibold mb-1">
+                  Preview Ready
+                </p>
+                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
+                  Submit a prompt on the left to stream a website generator live, or select a recent project to load.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

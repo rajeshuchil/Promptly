@@ -49,7 +49,7 @@ export class GeneratorService {
 
   // ── Output cleaner ─────────────────────────────────────────────────────────
 
-  private cleanRawOutput(raw: string): string {
+  public cleanRawOutput(raw: string): string {
     let cleaned = raw.trim();
 
     // Strip leading/trailing ```html … ``` or ``` … ``` fences
@@ -128,6 +128,41 @@ export class GeneratorService {
         generatedAt: new Date().toISOString(),
       },
     };
+  }
+
+  /**
+   * Stream the generated HTML content progressively.
+   */
+  async *stream(
+    input: GeneratorInput,
+    options?: GeneratorOptions
+  ): AsyncIterable<string> {
+    this.validateInput(input);
+
+    const style = options?.style ?? "standard";
+    const promptBuilder = selectGeneratorPromptBuilder(style);
+    const userMessage = promptBuilder(input.prompt, input.plan);
+
+    try {
+      const stream = this.provider.streamText(userMessage, {
+        systemPrompt: GENERATOR_SYSTEM_PROMPT,
+        temperature: options?.temperature ?? 0.7,
+        maxTokens: options?.maxTokens ?? 16_384,
+      });
+
+      for await (const chunk of stream) {
+        yield chunk.text;
+      }
+    } catch (error) {
+      if (error instanceof AIError) throw error;
+
+      throw new AIError(
+        `Generator streaming failed: ${error instanceof Error ? error.message : String(error)}`,
+        AIErrorCode.PROVIDER_ERROR,
+        500,
+        error
+      );
+    }
   }
 
 

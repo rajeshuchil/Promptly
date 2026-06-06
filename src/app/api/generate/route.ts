@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { PlannerService } from "@/lib/ai/planner/planner";
 import { GeneratorService } from "@/lib/ai/generator/generator";
 import { HtmlValidator } from "@/lib/ai/validator/validator";
@@ -6,183 +5,202 @@ import { ProjectService } from "@/lib/projects/project-service";
 import { GenerateRequestSchema } from "@/lib/ai/generator/schemas";
 import { AIError } from "@/lib/ai/types";
 
+export const runtime = "nodejs";
+
+/**
+ * POST /api/generate
+ *
+ * Emits progressive server-sent events (SSE) for the generation process:
+ * 1. event: planning   - when planner is generating the plan
+ * 2. event: generating - when starting content generation (includes structured plan)
+ * 3. event: chunk      - progressive raw HTML stream chunks
+ * 4. event: validating - validating and repairing HTML
+ * 5. event: saving     - saving final project to the database
+ * 6. event: complete   - project created successfully (includes final html, project ID)
+ * 7. event: error      - error occurred during generation pipeline
+ */
 export async function POST(request: Request) {
-  // ── 1. Validate request body ───────────────────────────────────────────────
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      {
+    return new Response(
+      JSON.stringify({
         success: false,
         error: { message: "Request body must be valid JSON", phase: "validation" },
-      },
-      { status: 400 }
+      }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 
   const parsed = GenerateRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      {
+    return new Response(
+      JSON.stringify({
         success: false,
         error: {
           message: "Invalid request payload",
           details: parsed.error.flatten(),
           phase: "validation",
         },
-      },
-      { status: 400 }
+      }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 
   const { prompt, style } = parsed.data;
+  const encoder = new TextEncoder();
 
-  // ── 2. Run Planner ─────────────────────────────────────────────────────────
-  let plan;
-  try {
-    const plannerService = PlannerService.getInstance();
-    plan = await plannerService.generatePlanWithRetry(prompt, 2);
-  } catch (error) {
-    if (error instanceof AIError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            message: error.message,
-            code: error.code,
-            phase: "planning",
+  // Create stream
+  const stream = new ReadableStream({
+    async start(controller) {
+      const sendEvent = (event: string, data: any) => {
+        controller.enqueue(
+          encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+        );
+      };
+
+      try {
+        // Handle abort client signal
+        if (request.signal.aborted) {
+          sendEvent("error", { message: "Client disconnected", phase: "network" });
+          controller.close();
+          return;
+        }
+
+        // ── 1. Planning Phase ────────────────────────────────────────────────
+        sendEvent("planning", { message: "Creating planner layout strategy..." });
+        
+        const plannerService = PlannerService.getInstance();
+        const plan = await plannerService.generatePlanWithRetry(prompt, 2);
+
+        if (request.signal.aborted) {
+          sendEvent("error", { message: "Client disconnected", phase: "network" });
+          controller.close();
+          return;
+        }
+
+        // ── 2. Generation Phase ──────────────────────────────────────────────
+        sendEvent("generating", {
+          message: "Structure planned. Generating code...",
+          plan,
+        });
+
+        const generatorService = GeneratorService.getInstance();
+        const generatorStream = generatorService.stream(
+          { prompt, plan },
+          { style }
+        );
+
+        let accumulatedHtml = "";
+        for await (const chunk of generatorStream) {
+          if (request.signal.aborted) {
+            sendEvent("error", { message: "Client disconnected", phase: "network" });
+            controller.close();
+            return;
+          }
+          accumulatedHtml += chunk;
+          sendEvent("chunk", { chunk });
+        }
+
+        // Clean raw markdown fences
+        const cleanedHtml = generatorService.cleanRawOutput(accumulatedHtml);
+
+        // ── 3. Validation Phase ──────────────────────────────────────────────
+        sendEvent("validating", { message: "Validating generated markup..." });
+
+        const validator = HtmlValidator.getInstance();
+        const validationReport = validator.validateAndRepair(cleanedHtml);
+
+        if (!validationReport.valid) {
+          sendEvent("error", {
+            message: "HTML validation failed and could not be repaired.",
+            phase: "validation",
+            validation: {
+              valid: validationReport.valid,
+              repaired: validationReport.repaired,
+              issues: validationReport.issues,
+            },
+          });
+          controller.close();
+          return;
+        }
+
+        // ── 4. Persistence Phase ──────────────────────────────────────────────
+        sendEvent("saving", { message: "Finalizing and saving website..." });
+
+        const projectService = ProjectService.getInstance();
+        const userId = await projectService.getOrCreateDefaultUser();
+
+        const capitalizedType = plan.pageType
+          ? plan.pageType.charAt(0).toUpperCase() + plan.pageType.slice(1)
+          : "Landing Page";
+        const projectName = `FastApp ${capitalizedType} - ${style}`;
+
+        const generatedMeta = {
+          plan,
+          generatorMeta: {
+            model: "gemini-2.5-flash",
+            promptStyle: style,
+            durationMs: 0, // Not applicable for streaming duration
+            outputLength: validationReport.html.length,
+            generatedAt: new Date().toISOString(),
           },
-        },
-        { status: error.statusCode }
-      );
-    }
-    return NextResponse.json(
-      {
-        success: false,
-        error: { message: "Planning phase encountered an unexpected error", phase: "planning" },
-      },
-      { status: 500 }
-    );
-  }
-
-  // ── 3. Run Generator ───────────────────────────────────────────────────────
-  let generatorOutput;
-  try {
-    const generatorService = GeneratorService.getInstance();
-    generatorOutput = await generatorService.generateWithRetry(
-      { prompt, plan },
-      2,
-      { style }
-    );
-  } catch (error) {
-    if (error instanceof AIError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            message: error.message,
-            code: error.code,
-            phase: "generation",
-          },
-        },
-        { status: error.statusCode }
-      );
-    }
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          message: "Generation phase encountered an unexpected error",
-          phase: "generation",
-        },
-      },
-      { status: 500 }
-    );
-  }
-
-  // ── 4. Run Validator & Repair ──────────────────────────────────────────────
-  const validator = HtmlValidator.getInstance();
-  const validationReport = validator.validateAndRepair(generatorOutput.html);
-
-  if (!validationReport.valid) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          message: "Generated website failed HTML validation and could not be repaired",
-          phase: "validation",
           validation: {
             valid: validationReport.valid,
             repaired: validationReport.repaired,
             issues: validationReport.issues,
           },
-        },
-      },
-      { status: 422 }
-    );
-  }
+        };
 
-  // ── 5. Persist Generation results in Database ──────────────────────────────
-  let project;
-  try {
-    const projectService = ProjectService.getInstance();
-    const userId = await projectService.getOrCreateDefaultUser();
+        const project = await projectService.createProject({
+          userId,
+          name: projectName,
+          prompt,
+          generatedHtml: validationReport.html,
+          generatedMeta,
+          deploymentState: "generated",
+          aiModel: "gemini-2.5-flash",
+        });
 
-    // Derive a clean human-readable name from plan or prompt
-    const capitalizedType = plan.pageType
-      ? plan.pageType.charAt(0).toUpperCase() + plan.pageType.slice(1)
-      : "Landing Page";
-    const projectName = `FastApp ${capitalizedType} - ${style}`;
+        // ── 5. Completion ────────────────────────────────────────────────────
+        sendEvent("complete", {
+          projectId: project.id,
+          html: validationReport.html,
+          plan,
+          validation: {
+            valid: validationReport.valid,
+            repaired: validationReport.repaired,
+            issues: validationReport.issues,
+          },
+        });
+      } catch (error) {
+        let message = "Unexpected generation error";
+        let code = "UNKNOWN_ERROR";
 
-    // Structure metadata cleanly
-    const generatedMeta = {
-      plan,
-      generatorMeta: generatorOutput.meta,
-      validation: {
-        valid: validationReport.valid,
-        repaired: validationReport.repaired,
-        issues: validationReport.issues,
-      },
-    };
+        if (error instanceof AIError) {
+          message = error.message;
+          code = error.code;
+        } else if (error instanceof Error) {
+          message = error.message;
+        }
 
-    project = await projectService.createProject({
-      userId,
-      name: projectName,
-      prompt,
-      generatedHtml: validationReport.html,
-      generatedMeta,
-      deploymentState: "generated",
-      aiModel: generatorOutput.meta.model,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          message: `Persistence phase failed: ${error instanceof Error ? error.message : String(error)}`,
-          phase: "persistence",
-        },
-      },
-      { status: 500 }
-    );
-  }
-
-  // ── 6. Return Success ──────────────────────────────────────────────────────
-  return NextResponse.json(
-    {
-      success: true,
-      plan,
-      validation: {
-        valid: validationReport.valid,
-        repaired: validationReport.repaired,
-        issues: validationReport.issues,
-        html: validationReport.html,
-      },
-      html: validationReport.html,
-      projectId: project.id,
+        sendEvent("error", {
+          message,
+          code,
+          phase: "generation",
+        });
+      } finally {
+        controller.close();
+      }
     },
-    { status: 200 }
-  );
-}
+  });
 
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      "Connection": "keep-alive",
+    },
+  });
+}

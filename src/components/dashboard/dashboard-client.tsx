@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Sparkles, History, Trash2, Globe, Calendar, RefreshCw } from "lucide-react";
+import { Sparkles, History, Trash2, Globe, Calendar, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { PreviewPanel } from "@/components/preview";
+import { PreviewPanel, type PreviewStatus } from "@/components/preview";
 import type { Project } from "@/lib/projects/types";
 
 export function DashboardClient() {
@@ -17,6 +17,10 @@ export function DashboardClient() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [activeHtml, setActiveHtml] = useState<string | null>(null);
+
+  // Progressive generation states
+  const [generationState, setGenerationState] = useState<PreviewStatus>("idle");
+  const [generationMessage, setGenerationMessage] = useState<string>("");
 
   // Fetch projects list
   const loadProjects = useCallback(async () => {
@@ -38,15 +42,17 @@ export function DashboardClient() {
     loadProjects();
   }, [loadProjects]);
 
-  // Handle generation request
+  // Handle streaming generation request
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isGenerating) return;
 
     setIsGenerating(true);
     setGenerationError(null);
-    setActiveHtml(null);
+    setActiveHtml("");
     setSelectedProjectId(null);
+    setGenerationState("planning");
+    setGenerationMessage("Initiating website plan...");
 
     try {
       const res = await fetch("/api/generate", {
@@ -55,23 +61,81 @@ export function DashboardClient() {
         body: JSON.stringify({ prompt, style }),
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        setActiveHtml(data.html);
-        setSelectedProjectId(data.projectId);
-        setPrompt(""); // Clear input on success
-        loadProjects(); // Refresh sidebar history
-      } else {
-        const errorMsg =
-          data.error?.message ||
-          (data.error?.validation?.issues
-            ? `Validation failed: ${data.error.validation.issues.join(", ")}`
-            : "An error occurred during generation.");
-        setGenerationError(errorMsg);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `HTTP error! status: ${res.status}`);
       }
-    } catch (err) {
-      setGenerationError("Network error: failed to communicate with the generator API");
+
+      if (!res.body) {
+        throw new Error("ReadableStream is not supported by this browser or endpoint.");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const messages = buffer.split("\n\n");
+        buffer = messages.pop() || "";
+
+        for (const msg of messages) {
+          if (!msg.trim()) continue;
+
+          // Parse SSE format
+          const lines = msg.split("\n");
+          let event = "";
+          let dataText = "";
+
+          for (const line of lines) {
+            if (line.startsWith("event: ")) {
+              event = line.slice(7).trim();
+            } else if (line.startsWith("data: ")) {
+              dataText = line.slice(6).trim();
+            }
+          }
+
+          if (event && dataText) {
+            try {
+              const data = JSON.parse(dataText);
+              
+              if (event === "planning") {
+                setGenerationState("planning");
+                setGenerationMessage(data.message);
+              } else if (event === "generating") {
+                setGenerationState("generating");
+                setGenerationMessage(data.message);
+              } else if (event === "chunk") {
+                setGenerationState("generating");
+                setActiveHtml((prev) => (prev || "") + data.chunk);
+              } else if (event === "validating") {
+                setGenerationState("validating");
+                setGenerationMessage(data.message);
+              } else if (event === "saving") {
+                setGenerationState("saving");
+                setGenerationMessage(data.message);
+              } else if (event === "complete") {
+                setGenerationState("success");
+                setActiveHtml(data.html); // set final cleaned HTML
+                setSelectedProjectId(data.projectId);
+                setPrompt("");
+                loadProjects();
+              } else if (event === "error") {
+                setGenerationState("error");
+                setGenerationError(data.message);
+              }
+            } catch (jsonErr) {
+              console.error("Failed to parse event JSON:", jsonErr);
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      setGenerationState("error");
+      setGenerationError(err.message || "Failed to establish stream connection");
     } finally {
       setIsGenerating(false);
     }
@@ -91,6 +155,7 @@ export function DashboardClient() {
         if (selectedProjectId === id) {
           setSelectedProjectId(null);
           setActiveHtml(null);
+          setGenerationState("idle");
         }
         loadProjects();
       }
@@ -158,7 +223,7 @@ export function DashboardClient() {
               >
                 {isGenerating ? (
                   <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                     Generating...
                   </>
                 ) : (
@@ -221,6 +286,7 @@ export function DashboardClient() {
                         setSelectedProjectId(project.id);
                         setActiveHtml(null);
                         setGenerationError(null);
+                        setGenerationState("idle");
                       }}
                     >
                       <div className="min-w-0 flex-1 pr-2">
@@ -266,6 +332,8 @@ export function DashboardClient() {
           isLoading={isGenerating}
           error={generationError}
           onRefresh={loadProjects}
+          generationState={generationState}
+          generationMessage={generationMessage}
         />
       </div>
     </div>

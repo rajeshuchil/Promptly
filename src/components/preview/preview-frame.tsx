@@ -12,6 +12,19 @@ interface PreviewFrameProps {
 export function PreviewFrame({ html, deviceMode }: PreviewFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // Write content directly to the iframe's document to prevent white flash flickering
+  React.useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc) return;
+
+    doc.open();
+    doc.write(html || "<!DOCTYPE html><html><head></head><body style='background:#fff;'></body></html>");
+    doc.close();
+  }, [html]);
+
   // Width classes matching standard responsive breakpoints
   const frameStyles = {
     desktop: {
@@ -66,7 +79,6 @@ export function PreviewFrame({ html, deviceMode }: PreviewFrameProps) {
         <iframe
           ref={iframeRef}
           title="FastApp Site Preview"
-          srcDoc={html}
           sandbox="allow-scripts allow-same-origin"
           className="w-full h-full border-0 bg-white"
         />
