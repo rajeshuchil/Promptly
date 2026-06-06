@@ -16,6 +16,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import type { Plan } from "@/lib/ai/planner/schemas";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
@@ -101,7 +102,9 @@ export const projects = pgTable(
      * Arbitrary structured metadata stored by the AI pipeline.
      * e.g. { pageTitle, colorPalette, fonts, seoMeta }
      */
-    generatedMeta: jsonb("generated_meta"),
+    generatedMeta: jsonb("generated_meta").$type<
+      Plan | Record<string, unknown> | null
+    >(),
 
     // Deployment lifecycle
     deploymentState: text("deployment_state")
