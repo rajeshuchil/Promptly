@@ -12,6 +12,10 @@ export interface CreateUsageInput {
   status: "success" | "failed";
   phase: "planner" | "generator" | "validator";
   errorMessage?: string | null;
+  promptTokens?: number | null;
+  completionTokens?: number | null;
+  totalTokens?: number | null;
+  estimatedCost?: number | null;
 }
 
 export interface ModelUsageMetric {

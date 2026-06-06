@@ -24,4 +24,5 @@ export interface GeneratorOptions {
   style?: GeneratorPromptStyle;
   maxTokens?: number;
   temperature?: number;
+  userId?: string;
 }

@@ -34,6 +34,9 @@ export interface StructuredGenerationOptions {
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
+  model?: string;
+  userId?: string;
+  phase?: "planner" | "generator" | "validator";
 }
 export interface StreamingGenerationOptions extends StructuredGenerationOptions {
   onChunk?: (chunk: string) => void;

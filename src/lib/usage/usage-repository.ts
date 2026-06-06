@@ -30,10 +30,15 @@ export class UsageRepository {
         status: data.status,
         phase: data.phase,
         errorMessage: data.errorMessage ?? null,
+        promptTokens: data.promptTokens ?? null,
+        completionTokens: data.completionTokens ?? null,
+        totalTokens: data.totalTokens ?? null,
+        estimatedCost: data.estimatedCost ?? null,
       })
       .returning();
     return log;
   }
+
 
   /**
    * Get the total successful generations count for a user.

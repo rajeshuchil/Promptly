@@ -15,6 +15,7 @@ import {
   index,
   jsonb,
   integer,
+  doublePrecision,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import type { GeneratedProjectMeta, DeploymentState } from "@/lib/projects/types";
@@ -149,6 +150,10 @@ export const usageLogs = pgTable(
     status: text("status").notNull(), // "success" | "failed"
     phase: text("phase").notNull(), // "planner" | "generator" | "validator"
     errorMessage: text("error_message"),
+    promptTokens: integer("prompt_tokens"),
+    completionTokens: integer("completion_tokens"),
+    totalTokens: integer("total_tokens"),
+    estimatedCost: doublePrecision("estimated_cost"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

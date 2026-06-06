@@ -10,4 +10,8 @@ export const CreateUsageInputSchema = z.object({
   status: z.enum(["success", "failed"]),
   phase: z.enum(["planner", "generator", "validator"]),
   errorMessage: z.string().nullable().optional(),
+  promptTokens: z.number().int().nonnegative().nullable().optional(),
+  completionTokens: z.number().int().nonnegative().nullable().optional(),
+  totalTokens: z.number().int().nonnegative().nullable().optional(),
+  estimatedCost: z.number().nullable().optional(),
 });

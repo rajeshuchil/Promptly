@@ -4,20 +4,14 @@ import { PlannerService } from "@/lib/ai/planner/planner";
 import { AIError } from "@/lib/ai/types";
 import { requireUser } from "@/lib/auth";
 import { EntitlementsService } from "@/lib/billing";
-import { UsageService } from "@/lib/usage";
 
 const PlannerRequestSchema = z.object({
   prompt: z.string().min(1).max(2000),
 });
 
 export async function POST(request: Request) {
-  const user = await requireUser();
-  const usageService = UsageService.getInstance();
-  let status: "success" | "failed" = "success";
-  let errorMessage: string | null = null;
-  let promptText = "";
-
   try {
+    const user = await requireUser();
     const body = await request.json();
     const parsed = PlannerRequestSchema.safeParse(body);
 
@@ -34,7 +28,7 @@ export async function POST(request: Request) {
       );
     }
 
-    promptText = parsed.data.prompt;
+    const promptText = parsed.data.prompt;
 
     // Check usage limits using entitlements policy
     const entitlementsService = EntitlementsService.getInstance();
@@ -53,40 +47,9 @@ export async function POST(request: Request) {
     }
 
     const plannerService = PlannerService.getInstance();
-    let plan;
-    try {
-      plan = await plannerService.generatePlan(promptText);
-      
-      // Record successful planner execution
-      await usageService.recordUsage({
-        userId: user.id,
-        model: "gemini-2.5-flash",
-        provider: "google",
-        promptLength: promptText.length,
-        outputLength: JSON.stringify(plan).length,
-        status: "success",
-        phase: "planner",
-      });
+    const plan = await plannerService.generatePlan(promptText, { userId: user.id });
 
-      return NextResponse.json({ success: true, plan }, { status: 200 });
-    } catch (e: any) {
-      status = "failed";
-      errorMessage = e.message || "Planner generation failed";
-      
-      // Record failed planner execution
-      await usageService.recordUsage({
-        userId: user.id,
-        model: "gemini-2.5-flash",
-        provider: "google",
-        promptLength: promptText.length,
-        outputLength: 0,
-        status: "failed",
-        phase: "planner",
-        errorMessage,
-      });
-      
-      throw e;
-    }
+    return NextResponse.json({ success: true, plan }, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       return NextResponse.json(
@@ -117,7 +80,7 @@ export async function POST(request: Request) {
       {
         success: false,
         error: {
-          message: "Unexpected error",
+          message: error instanceof Error ? error.message : "Unexpected error",
         },
       },
       { status: 500 }

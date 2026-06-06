@@ -105,28 +105,8 @@ export async function POST(request: Request) {
         let plan;
         try {
           const plannerService = PlannerService.getInstance();
-          plan = await plannerService.generatePlanWithRetry(prompt, 2);
-
-          await usageService.recordUsage({
-            userId: user.id,
-            model: "gemini-2.5-flash",
-            provider: "google",
-            promptLength: prompt.length,
-            outputLength: JSON.stringify(plan).length,
-            status: "success",
-            phase: "planner",
-          });
+          plan = await plannerService.generatePlanWithRetry(prompt, 2, { userId: user.id });
         } catch (e: any) {
-          await usageService.recordUsage({
-            userId: user.id,
-            model: "gemini-2.5-flash",
-            provider: "google",
-            promptLength: prompt.length,
-            outputLength: 0,
-            status: "failed",
-            phase: "planner",
-            errorMessage: e.message || "Planning generation failed",
-          });
           throw e;
         }
 
@@ -147,7 +127,7 @@ export async function POST(request: Request) {
           const generatorService = GeneratorService.getInstance();
           const generatorStream = generatorService.stream(
             { prompt, plan },
-            { style }
+            { style, userId: user.id }
           );
 
           let accumulatedHtml = "";
@@ -162,27 +142,7 @@ export async function POST(request: Request) {
           }
 
           cleanedHtml = generatorService.cleanRawOutput(accumulatedHtml);
-
-          await usageService.recordUsage({
-            userId: user.id,
-            model: "gemini-2.5-flash",
-            provider: "google",
-            promptLength: prompt.length + JSON.stringify(plan).length,
-            outputLength: cleanedHtml.length,
-            status: "success",
-            phase: "generator",
-          });
         } catch (e: any) {
-          await usageService.recordUsage({
-            userId: user.id,
-            model: "gemini-2.5-flash",
-            provider: "google",
-            promptLength: prompt.length + JSON.stringify(plan).length,
-            outputLength: 0,
-            status: "failed",
-            phase: "generator",
-            errorMessage: e.message || "Code generation failed",
-          });
           throw e;
         }
 

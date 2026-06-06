@@ -15,6 +15,7 @@ const GeminiErrorResponseSchema = z.object({
     status: z.string(),
   }),
 });
+
 const GeminiContentSchema = z.object({
   candidates: z
     .array(
@@ -31,6 +32,7 @@ const GeminiContentSchema = z.object({
     )
     .min(1),
 });
+
 const GeminiStreamChunkSchema = z.object({
   candidates: z
     .array(
@@ -51,7 +53,7 @@ export class GeminiProvider implements AIProvider {
   private static instance: GeminiProvider;
   private readonly apiKey: string;
   private readonly baseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
-  private readonly model = "gemini-2.5-flash";
+  private readonly defaultModel = "gemini-2.5-flash";
 
   private constructor() {
     this.apiKey = process.env.GOOGLE_API_KEY || "";
@@ -70,6 +72,7 @@ export class GeminiProvider implements AIProvider {
     }
     return GeminiProvider.instance;
   }
+
   private async validateResponse(response: Response): Promise<void> {
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
@@ -120,8 +123,9 @@ export class GeminiProvider implements AIProvider {
     options?: StructuredGenerationOptions
   ): Promise<string> {
     try {
+      const model = options?.model ?? this.defaultModel;
       const response = await fetch(
-        `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/${model}:generateContent?key=${this.apiKey}`,
         {
           method: "POST",
           headers: {
@@ -181,10 +185,11 @@ export class GeminiProvider implements AIProvider {
     options?: StructuredGenerationOptions
   ): Promise<T> {
     try {
+      const model = options?.model ?? this.defaultModel;
       const jsonSchema = this.toJsonSchema(schema);
 
       const response = await fetch(
-        `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/${model}:generateContent?key=${this.apiKey}`,
         {
           method: "POST",
           headers: {
@@ -268,8 +273,9 @@ export class GeminiProvider implements AIProvider {
     options?: StreamingGenerationOptions
   ): AsyncIterable<StreamChunk> {
     try {
+      const model = options?.model ?? this.defaultModel;
       const response = await fetch(
-        `${this.baseUrl}/${this.model}:streamGenerateContent?alt=sse&key=${this.apiKey}`,
+        `${this.baseUrl}/${model}:streamGenerateContent?alt=sse&key=${this.apiKey}`,
         {
           method: "POST",
           headers: {
@@ -348,21 +354,20 @@ export class GeminiProvider implements AIProvider {
           try {
             const jsonText = buffer.slice(6);
             if (jsonText !== "[DONE]") {
-            const data = JSON.parse(jsonText);
-            const parsed = GeminiStreamChunkSchema.safeParse(data);
-            if (parsed.success && parsed.data.candidates?.[0]) {
-              const text = parsed.data.candidates[0].content.parts[0]?.text || "";
-              if (text) {
-                options?.onChunk?.(text);
-                yield {
-                  text,
-                  index: chunkIndex++,
-                };
+              const data = JSON.parse(jsonText);
+              const parsed = GeminiStreamChunkSchema.safeParse(data);
+              if (parsed.success && parsed.data.candidates?.[0]) {
+                const text = parsed.data.candidates[0].content.parts[0]?.text || "";
+                if (text) {
+                  options?.onChunk?.(text);
+                  yield {
+                    text,
+                    index: chunkIndex++,
+                  };
+                }
               }
             }
-            }
-          } catch {
-          }
+          } catch {}
         }
       } finally {
         reader.releaseLock();
@@ -384,7 +389,7 @@ export class GeminiProvider implements AIProvider {
   async isHealthy(): Promise<boolean> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/${this.defaultModel}:generateContent?key=${this.apiKey}`,
         {
           method: "POST",
           headers: {

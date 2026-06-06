@@ -75,9 +75,10 @@ export class PlannerService {
           systemPrompt: PLANNER_SYSTEM_PROMPT,
           temperature: style === "creative" ? 0.8 : 0,
           maxTokens: 4096,
+          userId: options?.userId,
+          phase: "planner",
         }
       );
-
       return plan;
     } catch (error) {
       if (error instanceof AIError) {

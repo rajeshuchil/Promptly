@@ -97,6 +97,8 @@ export class GeneratorService {
         systemPrompt: GENERATOR_SYSTEM_PROMPT,
         temperature: options?.temperature ?? 0.7,
         maxTokens: options?.maxTokens ?? 16_384,
+        userId: options?.userId,
+        phase: "generator",
       });
     } catch (error) {
       if (error instanceof AIError) throw error;
@@ -148,6 +150,8 @@ export class GeneratorService {
         systemPrompt: GENERATOR_SYSTEM_PROMPT,
         temperature: options?.temperature ?? 0.7,
         maxTokens: options?.maxTokens ?? 16_384,
+        userId: options?.userId,
+        phase: "generator",
       });
 
       for await (const chunk of stream) {
