@@ -1,6 +1,7 @@
 import { SubscriptionService } from "./subscription-service";
 import { UsageService } from "@/lib/usage/usage-service";
 import type { PlanTier } from "./types";
+import { getTemplateById } from "@/lib/templates/templates";
 
 export class EntitlementsService {
   private static instance: EntitlementsService;
@@ -92,6 +93,35 @@ export class EntitlementsService {
       return {
         allowed: false,
         message: "Access to advanced Reasoning Models (Gemini 2.5 Pro) is restricted to Pro and Enterprise tiers.",
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  /**
+   * Gates template usage based on user subscription plan.
+   */
+  async canUseTemplate(userId: string, templateId: string): Promise<{ allowed: boolean; message?: string }> {
+    const template = getTemplateById(templateId);
+    if (!template) {
+      return { allowed: true }; // Allow fallback/unknown templates
+    }
+
+    const sub = await this.subscriptionService.getSubscription(userId);
+    const userPlan = sub.plan;
+
+    if (template.tier === "pro" && userPlan === "free") {
+      return {
+        allowed: false,
+        message: `The template "${template.title}" requires a Pro or Enterprise subscription.`,
+      };
+    }
+
+    if (template.tier === "enterprise" && userPlan !== "enterprise") {
+      return {
+        allowed: false,
+        message: `The template "${template.title}" requires an Enterprise subscription.`,
       };
     }
 

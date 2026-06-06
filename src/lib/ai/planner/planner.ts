@@ -7,6 +7,8 @@ import {
   buildAccessiblePlannerPrompt,
 } from "./prompts";
 import { AIError, AIErrorCode } from "../types";
+import { getTemplateById } from "@/lib/templates/templates";
+import { getBlueprintForPageType } from "@/lib/templates/blueprint";
 
 export type PlannerStyle = "default" | "creative" | "accessible";
 
@@ -14,6 +16,8 @@ export interface PlanGenerationOptions {
   style?: PlannerStyle;
   userId?: string;
   projectId?: string;
+  templateId?: string;
+  blueprintId?: string;
 }
 
 export class PlannerService {
@@ -65,7 +69,65 @@ export class PlannerService {
 
     const style = options?.style || "default";
     const promptBuilder = this.selectPromptBuilder(style);
-    const userMessage = promptBuilder(userPrompt);
+    let userMessage = promptBuilder(userPrompt);
+
+    // ─── Resolve Template and Blueprint Context ───
+    let templateContext = "";
+    let blueprintContext = "";
+
+    if (options?.templateId) {
+      const template = getTemplateById(options.templateId);
+      if (template) {
+        templateContext = `
+[TEMPLATE CONSTRAINTS]
+The user selected the template "${template.title}" (Page Type: "${template.pageType}").
+You MUST design the page structure matching these exact template specs, adapting copy/content to the user's prompt:
+- Theme: ${template.theme}
+- Layout: ${template.layout}
+- Design Tokens: ${JSON.stringify(template.designTokens)}
+- Style Keywords: ${JSON.stringify(template.styleKeywords)}
+- Sections Structure (maintain this exact sequence): ${JSON.stringify(template.sections)}
+- Components to include: ${JSON.stringify(template.components)}
+`;
+      }
+    }
+
+    // Resolve blueprint
+    let resolvedBlueprint = null;
+    if (options?.templateId) {
+      const template = getTemplateById(options.templateId);
+      if (template) {
+        resolvedBlueprint = getBlueprintForPageType(template.pageType);
+      }
+    } else if (options?.blueprintId) {
+      const bpId = options.blueprintId.replace("blueprint-", "");
+      resolvedBlueprint = getBlueprintForPageType(bpId);
+    } else {
+      // Auto-detect blueprint by page type keywords
+      const lowerPrompt = userPrompt.toLowerCase();
+      if (lowerPrompt.includes("dashboard") || lowerPrompt.includes("admin") || lowerPrompt.includes("portal")) {
+        resolvedBlueprint = getBlueprintForPageType("dashboard");
+      } else if (lowerPrompt.includes("portfolio") || lowerPrompt.includes("resume") || lowerPrompt.includes("cv")) {
+        resolvedBlueprint = getBlueprintForPageType("portfolio");
+      } else if (lowerPrompt.includes("landing") || lowerPrompt.includes("homepage") || lowerPrompt.includes("startup")) {
+        resolvedBlueprint = getBlueprintForPageType("landing");
+      }
+    }
+
+    if (resolvedBlueprint) {
+      blueprintContext = `
+[BLUEPRINT RULES]
+The page belongs to category "${resolvedBlueprint.name}".
+Apply these rules to reduce layout ambiguity:
+- Default Layout: ${resolvedBlueprint.defaultLayout}
+- Required Sections: ${JSON.stringify(resolvedBlueprint.requiredSections)}
+- Suggested Components: ${JSON.stringify(resolvedBlueprint.suggestedComponents)}
+`;
+    }
+
+    if (blueprintContext || templateContext) {
+      userMessage += `\n\nAdditional layout & structure guidelines:${blueprintContext}${templateContext}`;
+    }
 
     try {
       const plan = await this.provider.generateStructured(

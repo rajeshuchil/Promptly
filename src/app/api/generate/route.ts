@@ -79,7 +79,30 @@ export async function POST(request: Request) {
     );
   }
 
-  const { prompt, style } = parsed.data;
+  const { prompt, style, templateId, blueprintId } = parsed.data;
+
+  // Validate template entitlement before initiating stream
+  if (templateId) {
+    try {
+      const templateCheck = await entitlementsService.canUseTemplate(user.id, templateId);
+      if (!templateCheck.allowed) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: {
+              message: templateCheck.message,
+              code: "LIMIT_EXCEEDED",
+              phase: "validation",
+            },
+          }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } catch (err) {
+      console.error("Failed to check template entitlement:", err);
+    }
+  }
+
   const encoder = new TextEncoder();
 
   // Create stream
@@ -105,7 +128,11 @@ export async function POST(request: Request) {
         let plan;
         try {
           const plannerService = PlannerService.getInstance();
-          plan = await plannerService.generatePlanWithRetry(prompt, 2, { userId: user.id });
+          plan = await plannerService.generatePlanWithRetry(prompt, 2, {
+            userId: user.id,
+            templateId,
+            blueprintId,
+          });
         } catch (e: any) {
           throw e;
         }

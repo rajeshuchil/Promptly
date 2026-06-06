@@ -39,6 +39,8 @@ export const GenerateRequestSchema = z.object({
     .enum(["standard", "minimal", "rich"])
     .optional()
     .default("standard"),
+  templateId: z.string().optional(),
+  blueprintId: z.string().optional(),
 });
 
 export type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
