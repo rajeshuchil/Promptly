@@ -18,9 +18,28 @@ export function DashboardClient() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [activeHtml, setActiveHtml] = useState<string | null>(null);
 
+  const [usageStats, setUsageStats] = useState<any>(null);
+  const [isLoadingUsage, setIsLoadingUsage] = useState(false);
+
   // Progressive generation states
   const [generationState, setGenerationState] = useState<PreviewStatus>("idle");
   const [generationMessage, setGenerationMessage] = useState<string>("");
+
+  // Fetch usage stats
+  const loadUsage = useCallback(async () => {
+    setIsLoadingUsage(true);
+    try {
+      const res = await fetch("/api/usage");
+      const data = await res.json();
+      if (data.success) {
+        setUsageStats(data);
+      }
+    } catch (err) {
+      console.error("Failed to load usage stats:", err);
+    } finally {
+      setIsLoadingUsage(false);
+    }
+  }, []);
 
   // Fetch projects list
   const loadProjects = useCallback(async () => {
@@ -40,7 +59,8 @@ export function DashboardClient() {
 
   useEffect(() => {
     loadProjects();
-  }, [loadProjects]);
+    loadUsage();
+  }, [loadProjects, loadUsage]);
 
   // Handle streaming generation request
   const handleGenerate = async (e: React.FormEvent) => {
@@ -123,9 +143,11 @@ export function DashboardClient() {
                 setSelectedProjectId(data.projectId);
                 setPrompt("");
                 loadProjects();
+                loadUsage();
               } else if (event === "error") {
                 setGenerationState("error");
                 setGenerationError(data.message);
+                loadUsage();
               }
             } catch (jsonErr) {
               console.error("Failed to parse event JSON:", jsonErr);
@@ -136,6 +158,7 @@ export function DashboardClient() {
     } catch (err: any) {
       setGenerationState("error");
       setGenerationError(err.message || "Failed to establish stream connection");
+      loadUsage();
     } finally {
       setIsGenerating(false);
     }
@@ -158,6 +181,7 @@ export function DashboardClient() {
           setGenerationState("idle");
         }
         loadProjects();
+        loadUsage();
       }
     } catch (err) {
       console.error("Failed to delete project:", err);
@@ -165,7 +189,59 @@ export function DashboardClient() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-140px)] min-h-[650px]">
+    <div className="flex flex-col gap-6 h-full min-h-[650px] animate-fade-in">
+      {/* SaaS Usage & Plan Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+        {/* Card 1: Plan Tier */}
+        <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-4 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Subscription Plan</p>
+            <h3 className="text-lg font-extrabold mt-1 text-white capitalize">
+              {usageStats?.plan?.plan || "Free"} Plan
+            </h3>
+          </div>
+          <div className="px-2.5 py-1 rounded-full text-[10px] font-bold text-white bg-gradient-to-r from-[oklch(0.60_0.27_270)] to-[oklch(0.53_0.28_310)] select-none">
+            Active
+          </div>
+        </Card>
+
+        {/* Card 2: Total Projects */}
+        <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-4">
+          <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Total Projects</p>
+          <h3 className="text-2xl font-extrabold mt-1 text-white">{projects.length}</h3>
+        </Card>
+
+        {/* Card 3: Total Runs */}
+        <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-4">
+          <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Total AI Generations</p>
+          <h3 className="text-2xl font-extrabold mt-1 text-white">
+            {usageStats?.metrics?.totalGenerations ?? 0}
+          </h3>
+        </Card>
+
+        {/* Card 4: Month Usage progress */}
+        <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Generations This Month</p>
+            <span className="text-[10px] font-mono text-[var(--color-brand-400)] font-semibold">
+              {usageStats?.plan?.generationsUsed ?? 0} / {usageStats?.plan?.generationLimit ?? 10}
+            </span>
+          </div>
+          <div className="w-full bg-[var(--color-surface-950)] h-1.5 rounded-full mt-2.5 overflow-hidden border border-[var(--color-border)]">
+            <div 
+              className="bg-gradient-to-r from-[oklch(0.60_0.27_270)] to-[oklch(0.53_0.28_310)] h-full transition-all duration-500"
+              style={{ 
+                width: `${Math.min(
+                  ((usageStats?.plan?.generationsUsed ?? 0) / (usageStats?.plan?.generationLimit ?? 10)) * 100, 
+                  100
+                )}%` 
+              }}
+            />
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
       {/* LEFT COLUMN: Prompt Input & Project History */}
       <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6 h-full min-h-0">
         
@@ -336,6 +412,7 @@ export function DashboardClient() {
           generationMessage={generationMessage}
         />
       </div>
+    </div>
     </div>
   );
 }

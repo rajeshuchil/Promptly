@@ -14,6 +14,7 @@ import {
   boolean,
   index,
   jsonb,
+  integer,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import type { GeneratedProjectMeta, DeploymentState } from "@/lib/projects/types";
@@ -125,8 +126,37 @@ export const projects = pgTable(
   },
   (table) => [
     index("projects_user_id_idx").on(table.userId),
-    index("projects_deployment_state_idx").on(table.deploymentState),
+    index("projects_deployment_state_idx").on(table.createdAt),
     index("projects_created_at_idx").on(table.createdAt),
+  ],
+);
+
+// ─── Usage Logs ───────────────────────────────────────────────────────────────
+
+export const usageLogs = pgTable(
+  "usage_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id")
+      .references(() => projects.id, { onDelete: "set null" }),
+    model: text("model").notNull(),
+    provider: text("provider").notNull(),
+    promptLength: integer("prompt_length").notNull(),
+    outputLength: integer("output_length").notNull(),
+    status: text("status").notNull(), // "success" | "failed"
+    phase: text("phase").notNull(), // "planner" | "generator" | "validator"
+    errorMessage: text("error_message"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("usage_logs_user_id_idx").on(table.userId),
+    index("usage_logs_project_id_idx").on(table.projectId),
+    index("usage_logs_created_at_idx").on(table.createdAt),
   ],
 );
 
@@ -134,12 +164,25 @@ export const projects = pgTable(
 
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
+  usageLogs: many(usageLogs),
 }));
 
-export const projectsRelations = relations(projects, ({ one }) => ({
+export const projectsRelations = relations(projects, ({ one, many }) => ({
   user: one(users, {
     fields: [projects.userId],
     references: [users.id],
+  }),
+  usageLogs: many(usageLogs),
+}));
+
+export const usageLogsRelations = relations(usageLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [usageLogs.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [usageLogs.projectId],
+    references: [projects.id],
   }),
 }));
 
@@ -150,3 +193,6 @@ export type NewUser = typeof users.$inferInsert;
 
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
+
+export type UsageLog = typeof usageLogs.$inferSelect;
+export type NewUsageLog = typeof usageLogs.$inferInsert;

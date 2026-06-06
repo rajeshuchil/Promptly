@@ -5,20 +5,14 @@ import { ProjectService } from "@/lib/projects/project-service";
 import { GenerateRequestSchema } from "@/lib/ai/generator/schemas";
 import { AIError } from "@/lib/ai/types";
 import { getCurrentUser } from "@/lib/auth";
+import { UsageService } from "@/lib/usage";
 
 export const runtime = "nodejs";
 
 /**
  * POST /api/generate
  *
- * Emits progressive server-sent events (SSE) for the generation process:
- * 1. event: planning   - when planner is generating the plan
- * 2. event: generating - when starting content generation (includes structured plan)
- * 3. event: chunk      - progressive raw HTML stream chunks
- * 4. event: validating - validating and repairing HTML
- * 5. event: saving     - saving final project to the database
- * 6. event: complete   - project created successfully (includes final html, project ID)
- * 7. event: error      - error occurred during generation pipeline
+ * Emits progressive server-sent events (SSE) for the generation process
  */
 export async function POST(request: Request) {
   // Enforce session check before starting stream
@@ -31,6 +25,27 @@ export async function POST(request: Request) {
       }),
       { status: 401, headers: { "Content-Type": "application/json" } }
     );
+  }
+
+  // Check usage limits
+  const usageService = UsageService.getInstance();
+  try {
+    const planDetails = await usageService.getPlanDetails(user.id);
+    if (planDetails.isOverLimit) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            message: `Usage limit exceeded (${planDetails.generationsUsed}/${planDetails.generationLimit} generations). Please upgrade your plan.`,
+            code: "LIMIT_EXCEEDED",
+            phase: "validation",
+          },
+        }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+  } catch (err) {
+    console.error("Failed to check plan limits:", err);
   }
 
   let body: unknown;
@@ -84,8 +99,33 @@ export async function POST(request: Request) {
         // ── 1. Planning Phase ────────────────────────────────────────────────
         sendEvent("planning", { message: "Creating planner layout strategy..." });
         
-        const plannerService = PlannerService.getInstance();
-        const plan = await plannerService.generatePlanWithRetry(prompt, 2);
+        let plan;
+        try {
+          const plannerService = PlannerService.getInstance();
+          plan = await plannerService.generatePlanWithRetry(prompt, 2);
+
+          await usageService.recordUsage({
+            userId: user.id,
+            model: "gemini-2.5-flash",
+            provider: "google",
+            promptLength: prompt.length,
+            outputLength: JSON.stringify(plan).length,
+            status: "success",
+            phase: "planner",
+          });
+        } catch (e: any) {
+          await usageService.recordUsage({
+            userId: user.id,
+            model: "gemini-2.5-flash",
+            provider: "google",
+            promptLength: prompt.length,
+            outputLength: 0,
+            status: "failed",
+            phase: "planner",
+            errorMessage: e.message || "Planning generation failed",
+          });
+          throw e;
+        }
 
         if (request.signal.aborted) {
           sendEvent("error", { message: "Client disconnected", phase: "network" });
@@ -99,25 +139,49 @@ export async function POST(request: Request) {
           plan,
         });
 
-        const generatorService = GeneratorService.getInstance();
-        const generatorStream = generatorService.stream(
-          { prompt, plan },
-          { style }
-        );
+        let cleanedHtml = "";
+        try {
+          const generatorService = GeneratorService.getInstance();
+          const generatorStream = generatorService.stream(
+            { prompt, plan },
+            { style }
+          );
 
-        let accumulatedHtml = "";
-        for await (const chunk of generatorStream) {
-          if (request.signal.aborted) {
-            sendEvent("error", { message: "Client disconnected", phase: "network" });
-            controller.close();
-            return;
+          let accumulatedHtml = "";
+          for await (const chunk of generatorStream) {
+            if (request.signal.aborted) {
+              sendEvent("error", { message: "Client disconnected", phase: "network" });
+              controller.close();
+              return;
+            }
+            accumulatedHtml += chunk;
+            sendEvent("chunk", { chunk });
           }
-          accumulatedHtml += chunk;
-          sendEvent("chunk", { chunk });
-        }
 
-        // Clean raw markdown fences
-        const cleanedHtml = generatorService.cleanRawOutput(accumulatedHtml);
+          cleanedHtml = generatorService.cleanRawOutput(accumulatedHtml);
+
+          await usageService.recordUsage({
+            userId: user.id,
+            model: "gemini-2.5-flash",
+            provider: "google",
+            promptLength: prompt.length + JSON.stringify(plan).length,
+            outputLength: cleanedHtml.length,
+            status: "success",
+            phase: "generator",
+          });
+        } catch (e: any) {
+          await usageService.recordUsage({
+            userId: user.id,
+            model: "gemini-2.5-flash",
+            provider: "google",
+            promptLength: prompt.length + JSON.stringify(plan).length,
+            outputLength: 0,
+            status: "failed",
+            phase: "generator",
+            errorMessage: e.message || "Code generation failed",
+          });
+          throw e;
+        }
 
         // ── 3. Validation Phase ──────────────────────────────────────────────
         sendEvent("validating", { message: "Validating generated markup..." });
@@ -126,6 +190,17 @@ export async function POST(request: Request) {
         const validationReport = validator.validateAndRepair(cleanedHtml);
 
         if (!validationReport.valid) {
+          await usageService.recordUsage({
+            userId: user.id,
+            model: "local-html-parser",
+            provider: "fastapp",
+            promptLength: cleanedHtml.length,
+            outputLength: 0,
+            status: "failed",
+            phase: "validator",
+            errorMessage: "HTML validation failed and could not be repaired",
+          });
+
           sendEvent("error", {
             message: "HTML validation failed and could not be repaired.",
             phase: "validation",
@@ -155,7 +230,7 @@ export async function POST(request: Request) {
           generatorMeta: {
             model: "gemini-2.5-flash",
             promptStyle: style,
-            durationMs: 0, // Not applicable for streaming duration
+            durationMs: 0,
             outputLength: validationReport.html.length,
             generatedAt: new Date().toISOString(),
           },
@@ -174,6 +249,18 @@ export async function POST(request: Request) {
           generatedMeta,
           deploymentState: "generated",
           aiModel: "gemini-2.5-flash",
+        });
+
+        // Record successful validation and storage linked to projectId
+        await usageService.recordUsage({
+          userId: user.id,
+          projectId: project.id,
+          model: "local-html-parser",
+          provider: "fastapp",
+          promptLength: cleanedHtml.length,
+          outputLength: validationReport.html.length,
+          status: "success",
+          phase: "validator",
         });
 
         // ── 5. Completion ────────────────────────────────────────────────────
