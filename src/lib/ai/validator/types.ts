@@ -7,7 +7,7 @@ export interface ValidationIssue {
 export interface ValidationReport {
   valid: boolean;
   repaired: boolean;
-  issues: ValidationIssue[];
+  issues: string[];
   html: string;
 }
 

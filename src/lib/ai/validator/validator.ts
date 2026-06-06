@@ -24,19 +24,39 @@ export class HtmlValidator {
 
     const issues: ValidationIssue[] = [];
     
-    // 1. Empty/Existence check
+    // 1. Type check
+    if (typeof html !== "string") {
+      issues.push({
+        rule: "is_string",
+        message: "Generated output must be a string",
+        severity: "error",
+      });
+      return {
+        valid: false,
+        repaired: false,
+        issues: issues.map((i) => `[${i.severity.toUpperCase()}] ${i.message}`),
+        html: String(html || ""),
+      };
+    }
+
+    // 2. Empty/Existence check
     if (!html || html.trim().length === 0) {
       issues.push({
         rule: "non_empty",
         message: "Generated output is empty",
         severity: "error",
       });
-      return { valid: false, repaired: false, issues, html };
+      return {
+        valid: false,
+        repaired: false,
+        issues: issues.map((i) => `[${i.severity.toUpperCase()}] ${i.message}`),
+        html,
+      };
     }
 
     const trimmedHtml = html.trim();
 
-    // 2. Length threshold checks
+    // 3. Length threshold checks
     if (trimmedHtml.length < minLength) {
       issues.push({
         rule: "min_length",
@@ -52,7 +72,7 @@ export class HtmlValidator {
       });
     }
 
-    // 3. AI Refusal/Failure check
+    // 4. AI Refusal/Failure check
     for (const pattern of AI_REFUSAL_PATTERNS) {
       if (pattern.test(trimmedHtml)) {
         issues.push({
@@ -64,7 +84,7 @@ export class HtmlValidator {
       }
     }
 
-    // 4. Required root element checks
+    // 5. Required root element checks
     if (!/<!DOCTYPE html>/i.test(trimmedHtml)) {
       issues.push({
         rule: "doctype_missing",
@@ -97,7 +117,7 @@ export class HtmlValidator {
       });
     }
 
-    // 4b. Code fence check
+    // 5b. Code fence check
     if (/(^|\n)```/.test(trimmedHtml)) {
       issues.push({
         rule: "markdown_fence_leak",
@@ -106,7 +126,7 @@ export class HtmlValidator {
       });
     }
 
-    // 5. Semantic checks
+    // 6. Semantic checks
     if (requireSemantic) {
       if (!SEMANTIC_TAG_PATTERNS.header.test(trimmedHtml)) {
         issues.push({
@@ -137,7 +157,7 @@ export class HtmlValidator {
     return {
       valid: !hasErrors,
       repaired: false,
-      issues,
+      issues: issues.map((i) => `[${i.severity.toUpperCase()}] ${i.rule}: ${i.message}`),
       html,
     };
   }
@@ -159,20 +179,17 @@ export class HtmlValidator {
     const repairedReport = this.validate(repairResult.html, options);
 
     // If repair was applied, document it
+    const finalIssues = [...repairedReport.issues];
+    if (repairResult.repaired) {
+      for (const action of repairResult.actions) {
+        finalIssues.push(`[WARNING] repair_applied: Auto-repair action: ${action}`);
+      }
+    }
+
     return {
       valid: repairedReport.valid,
-      repaired: repairResult.repaired,
-      // Include any actions taken during repair as warnings or info
-      issues: [
-        ...repairedReport.issues,
-        ...repairResult.actions.map(
-          (action): ValidationIssue => ({
-            rule: "repair_applied",
-            message: `Auto-repair action: ${action}`,
-            severity: "warning",
-          })
-        ),
-      ],
+      repaired: repairResult.repaired || initialReport.repaired,
+      issues: finalIssues,
       html: repairResult.html,
     };
   }
