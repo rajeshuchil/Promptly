@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { DeployService } from "@/lib/deploy/deploy-service";
 import { ProjectService } from "@/lib/projects/project-service";
+import { getCurrentUser } from "@/lib/auth";
 
 type RouteContext = {
   params: Promise<{
@@ -16,6 +17,18 @@ export const runtime = "nodejs";
  * Deploys the project to FastApp edge servers. Streams build progress via SSE.
  */
 export async function POST(request: Request, { params }: RouteContext) {
+  // Check auth before starting the deploy stream
+  const user = await getCurrentUser();
+  if (!user) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { message: "Unauthorized: Authentication required" },
+      }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const { id } = await params;
     const encoder = new TextEncoder();
@@ -30,7 +43,7 @@ export async function POST(request: Request, { params }: RouteContext) {
 
         try {
           const deployService = DeployService.getInstance();
-          const deployStream = deployService.deployStream(id);
+          const deployStream = deployService.deployStream(id, user.id);
 
           for await (const step of deployStream) {
             sendEvent("progress", step);
@@ -39,7 +52,7 @@ export async function POST(request: Request, { params }: RouteContext) {
           // Update project table with failure state
           try {
             const projectService = ProjectService.getInstance();
-            await projectService.updateProject(id, {
+            await projectService.updateProject(id, user.id, {
               deploymentState: "failed",
               errorMessage: error.message || "Deployment execution failed",
             });

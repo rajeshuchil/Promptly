@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 
-/**
- * Root "/" redirects to the dashboard.
- * When auth is wired, replace with a proper check:
- *   const session = await getSession();
- *   if (!session) redirect("/login");
- *   redirect("/dashboard");
- */
-export default function RootPage() {
+export const dynamic = "force-dynamic";
+
+export default async function RootPage() {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
   redirect("/dashboard");
 }

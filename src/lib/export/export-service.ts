@@ -18,11 +18,12 @@ export class ExportService {
   }
 
   /**
-   * Orchestrates the export process for a given project ID and target format.
+   * Orchestrates the export process for a given project ID and target format,
+   * verifying user ownership.
    */
-  async exportProject(projectId: string, format: ExportFormat): Promise<ExportResult> {
-    // 1. Fetch the project
-    const project = await this.projectService.getProjectById(projectId);
+  async exportProject(projectId: string, userId: string, format: ExportFormat): Promise<ExportResult> {
+    // 1. Fetch the project and verify ownership
+    const project = await this.projectService.getProjectById(projectId, userId);
     if (!project) {
       throw new AIError(
         "Project not found",

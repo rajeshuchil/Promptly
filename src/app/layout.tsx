@@ -40,6 +40,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { SessionProvider } from "@/components/providers/session-provider";
+
 /* ── Root layout ──────────────────────────────────────────────────────────── */
 
 export default function RootLayout({
@@ -51,7 +53,11 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full`}
       suppressHydrationWarning
     >
-      <body className="h-full antialiased">{children}</body>
+      <body className="h-full antialiased">
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
     </html>
   );
 }

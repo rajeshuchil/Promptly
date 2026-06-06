@@ -17,10 +17,11 @@ export class DeployService {
 
   /**
    * Run deployment steps progressively, updating database state and yielding progress.
+   * Enforces project ownership verification via userId.
    */
-  async *deployStream(projectId: string): AsyncIterable<DeployStep & { url?: string }> {
-    // 1. Fetch the project
-    const project = await this.projectService.getProjectById(projectId);
+  async *deployStream(projectId: string, userId: string): AsyncIterable<DeployStep & { url?: string }> {
+    // 1. Fetch the project and verify ownership
+    const project = await this.projectService.getProjectById(projectId, userId);
     if (!project) {
       throw new AIError("Project not found", AIErrorCode.PROVIDER_ERROR, 404);
     }
@@ -34,7 +35,7 @@ export class DeployService {
     }
 
     // 2. Set database status to "deploying"
-    await this.projectService.updateProject(projectId, {
+    await this.projectService.updateProject(projectId, userId, {
       deploymentState: "deploying",
       errorMessage: null,
     });
@@ -66,7 +67,7 @@ export class DeployService {
     const deployedUrl = `https://fastapp.site/p/${projectId}`;
 
     // Update database status to "deployed"
-    await this.projectService.updateProject(projectId, {
+    await this.projectService.updateProject(projectId, userId, {
       deploymentState: "deployed",
       deployedUrl,
       errorMessage: null,

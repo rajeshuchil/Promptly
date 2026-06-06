@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ExportService } from "@/lib/export/export-service";
 import { ExportRequestSchema } from "@/lib/export/schemas";
+import { requireUser } from "@/lib/auth";
 
 type RouteContext = {
   params: Promise<{
@@ -11,10 +12,11 @@ type RouteContext = {
 /**
  * GET /api/projects/[id]/export?format=html|zip
  *
- * Downloads the project source code in the specified format.
+ * Downloads the project source code in the specified format, verifying user ownership.
  */
 export async function GET(request: Request, { params }: RouteContext) {
   try {
+    const user = await requireUser();
     const { id } = await params;
 
     // Parse format query param
@@ -38,7 +40,7 @@ export async function GET(request: Request, { params }: RouteContext) {
     const { format } = parsed.data;
 
     const exportService = ExportService.getInstance();
-    const result = await exportService.exportProject(id, format);
+    const result = await exportService.exportProject(id, user.id, format);
 
     // Construct headers for file download
     const headers = new Headers();
@@ -55,12 +57,13 @@ export async function GET(request: Request, { params }: RouteContext) {
       headers,
     });
   } catch (error: any) {
-    const statusCode = error.statusCode ?? 500;
+    const message = error instanceof Error ? error.message : "Export process failed";
+    const statusCode = error.statusCode ?? (message.includes("Unauthorized") ? 401 : 500);
     return NextResponse.json(
       {
         success: false,
         error: {
-          message: error instanceof Error ? error.message : "Export process failed",
+          message,
         },
       },
       { status: statusCode }

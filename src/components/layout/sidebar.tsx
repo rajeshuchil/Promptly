@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Sparkles,
@@ -10,6 +11,7 @@ import {
   Zap,
   HelpCircle,
   ExternalLink,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -92,6 +94,8 @@ function NavLink({ href, icon: Icon, label, isActive }: NavLinkProps) {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   return (
     <aside
@@ -133,6 +137,37 @@ export function Sidebar() {
           />
         ))}
       </div>
+
+      {/* User Profile Card */}
+      {user && (
+        <div className="mx-3 mb-2 p-3 rounded-[var(--radius-lg)] border border-[oklch(0.20_0.02_270)] bg-[oklch(0.12_0.02_270/0.4)] backdrop-blur-sm flex items-center justify-between gap-3 overflow-hidden">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Avatar badge */}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[oklch(0.60_0.27_270)] to-[oklch(0.53_0.28_310)] flex items-center justify-center text-xs font-bold text-white uppercase shrink-0">
+              {user.name ? user.name[0] : (user.email ? user.email[0] : "?")}
+            </div>
+            
+            {/* Details */}
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-semibold text-white truncate">
+                {user.name || "Developer"}
+              </span>
+              <span className="text-[10px] text-[oklch(0.60_0.02_270)] truncate">
+                {user.email}
+              </span>
+            </div>
+          </div>
+
+          {/* Sign Out Button */}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            title="Sign Out"
+            className="p-1.5 rounded-lg text-[oklch(0.60_0.02_270)] hover:text-white hover:bg-[oklch(0.18_0.02_270)] transition-colors shrink-0 cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Version badge */}
       <div className="mx-3 mb-4 px-3 py-2 rounded-[var(--radius-md)] glass-light text-xs text-[var(--color-surface-400)] flex items-center gap-1.5">

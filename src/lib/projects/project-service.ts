@@ -19,6 +19,7 @@ export class ProjectService {
 
   /**
    * Helper to retrieve the first user in the database or create a default user.
+   * Deprecated: Use actual session authentication instead.
    */
   async getOrCreateDefaultUser(): Promise<string> {
     const [firstUser] = await db.select().from(schema.users).limit(1);
@@ -64,17 +65,23 @@ export class ProjectService {
   }
 
   /**
-   * Retrieve a project by ID.
+   * Retrieve a project by ID and verify user ownership.
    */
-  async getProjectById(id: string): Promise<Project> {
+  async getProjectById(id: string, userId: string): Promise<Project> {
     if (!id) {
       throw new AIError("Project ID is required", AIErrorCode.INVALID_INPUT, 400);
+    }
+    if (!userId) {
+      throw new AIError("User ID is required for authorization", AIErrorCode.INVALID_INPUT, 400);
     }
 
     try {
       const project = await this.repository.getById(id);
       if (!project) {
         throw new AIError("Project not found", AIErrorCode.NOT_FOUND, 404);
+      }
+      if (project.userId !== userId) {
+        throw new AIError("Unauthorized: You do not own this project", AIErrorCode.PROVIDER_ERROR, 403);
       }
       return project;
     } catch (error) {
@@ -109,11 +116,14 @@ export class ProjectService {
   }
 
   /**
-   * Update an existing project.
+   * Update an existing project and verify user ownership.
    */
-  async updateProject(id: string, input: UpdateProjectInput): Promise<Project> {
+  async updateProject(id: string, userId: string, input: UpdateProjectInput): Promise<Project> {
     if (!id) {
       throw new AIError("Project ID is required for update", AIErrorCode.INVALID_INPUT, 400);
+    }
+    if (!userId) {
+      throw new AIError("User ID is required for update authorization", AIErrorCode.INVALID_INPUT, 400);
     }
 
     const parsed = UpdateProjectSchema.safeParse(input);
@@ -124,6 +134,9 @@ export class ProjectService {
         400
       );
     }
+
+    // Load project first to verify ownership
+    await this.getProjectById(id, userId);
 
     try {
       const updated = await this.repository.update(id, input);
@@ -143,12 +156,18 @@ export class ProjectService {
   }
 
   /**
-   * Hard-delete a project by ID.
+   * Hard-delete a project by ID and verify user ownership.
    */
-  async deleteProject(id: string): Promise<boolean> {
+  async deleteProject(id: string, userId: string): Promise<boolean> {
     if (!id) {
       throw new AIError("Project ID is required for deletion", AIErrorCode.INVALID_INPUT, 400);
     }
+    if (!userId) {
+      throw new AIError("User ID is required for deletion authorization", AIErrorCode.INVALID_INPUT, 400);
+    }
+
+    // Verify ownership
+    await this.getProjectById(id, userId);
 
     try {
       const deleted = await this.repository.delete(id);
@@ -168,12 +187,18 @@ export class ProjectService {
   }
 
   /**
-   * Soft-delete (archive) a project by ID.
+   * Soft-delete (archive) a project by ID and verify user ownership.
    */
-  async archiveProject(id: string): Promise<boolean> {
+  async archiveProject(id: string, userId: string): Promise<boolean> {
     if (!id) {
       throw new AIError("Project ID is required for archiving", AIErrorCode.INVALID_INPUT, 400);
     }
+    if (!userId) {
+      throw new AIError("User ID is required for archive authorization", AIErrorCode.INVALID_INPUT, 400);
+    }
+
+    // Verify ownership
+    await this.getProjectById(id, userId);
 
     try {
       const archived = await this.repository.archive(id);

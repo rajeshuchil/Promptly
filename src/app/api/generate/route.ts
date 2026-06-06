@@ -4,6 +4,7 @@ import { HtmlValidator } from "@/lib/ai/validator/validator";
 import { ProjectService } from "@/lib/projects/project-service";
 import { GenerateRequestSchema } from "@/lib/ai/generator/schemas";
 import { AIError } from "@/lib/ai/types";
+import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,18 @@ export const runtime = "nodejs";
  * 7. event: error      - error occurred during generation pipeline
  */
 export async function POST(request: Request) {
+  // Enforce session check before starting stream
+  const user = await getCurrentUser();
+  if (!user) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { message: "Unauthorized: Authentication required", phase: "validation" },
+      }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -130,7 +143,7 @@ export async function POST(request: Request) {
         sendEvent("saving", { message: "Finalizing and saving website..." });
 
         const projectService = ProjectService.getInstance();
-        const userId = await projectService.getOrCreateDefaultUser();
+        const userId = user.id;
 
         const capitalizedType = plan.pageType
           ? plan.pageType.charAt(0).toUpperCase() + plan.pageType.slice(1)
