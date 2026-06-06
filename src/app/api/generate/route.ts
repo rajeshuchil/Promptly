@@ -6,6 +6,7 @@ import { GenerateRequestSchema } from "@/lib/ai/generator/schemas";
 import { AIError } from "@/lib/ai/types";
 import { getCurrentUser } from "@/lib/auth";
 import { UsageService } from "@/lib/usage";
+import { EntitlementsService } from "@/lib/billing";
 
 export const runtime = "nodejs";
 
@@ -27,16 +28,18 @@ export async function POST(request: Request) {
     );
   }
 
-  // Check usage limits
   const usageService = UsageService.getInstance();
+
+  // Check usage limits using entitlements policy
+  const entitlementsService = EntitlementsService.getInstance();
   try {
-    const planDetails = await usageService.getPlanDetails(user.id);
-    if (planDetails.isOverLimit) {
+    const check = await entitlementsService.canGenerate(user.id);
+    if (!check.allowed) {
       return new Response(
         JSON.stringify({
           success: false,
           error: {
-            message: `Usage limit exceeded (${planDetails.generationsUsed}/${planDetails.generationLimit} generations). Please upgrade your plan.`,
+            message: check.message,
             code: "LIMIT_EXCEEDED",
             phase: "validation",
           },

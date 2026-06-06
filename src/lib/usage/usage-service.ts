@@ -1,3 +1,4 @@
+import { SubscriptionService } from "@/lib/billing/subscription-service";
 import { UsageRepository } from "./usage-repository";
 import { CreateUsageInputSchema } from "./usage-schemas";
 import type { CreateUsageInput, UserUsageMetrics, UserPlanDetails, PlanType } from "./usage-types";
@@ -51,9 +52,9 @@ export class UsageService {
    * Fetch plan and usage details for plan enforcement and future subscription gates.
    */
   async getPlanDetails(userId: string): Promise<UserPlanDetails> {
-    // Determine user plan. Currently defaults to "free" for all users
-    // Extensible for future Stripe/billing integrations
-    const plan: PlanType = "free"; 
+    const subscriptionService = SubscriptionService.getInstance();
+    const sub = await subscriptionService.getSubscription(userId);
+    const plan = sub.plan as PlanType;
     
     // Limits definition
     const limits: Record<PlanType, number> = {
@@ -65,9 +66,10 @@ export class UsageService {
     const now = new Date();
     const firstDayOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
     const generationsUsed = await this.repository.getCountSince(userId, firstDayOfMonth);
-    const generationLimit = limits[plan];
+    const generationLimit = limits[plan] || 10;
 
     return {
+      userId,
       plan,
       generationLimit,
       generationsUsed,

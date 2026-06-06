@@ -35,6 +35,7 @@ export interface UserUsageMetrics {
 }
 
 export interface UserPlanDetails {
+  userId: string;
   plan: PlanType;
   generationLimit: number;
   generationsUsed: number;

@@ -20,6 +20,7 @@ export function DashboardClient() {
 
   const [usageStats, setUsageStats] = useState<any>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(false);
+  const [isBillingLoading, setIsBillingLoading] = useState(false);
 
   // Progressive generation states
   const [generationState, setGenerationState] = useState<PreviewStatus>("idle");
@@ -57,10 +58,86 @@ export function DashboardClient() {
     }
   }, []);
 
+  const handleBilling = async () => {
+    setIsBillingLoading(true);
+    try {
+      const plan = usageStats?.plan?.plan || "free";
+      const isPaid = plan === "pro" || plan === "enterprise";
+
+      if (isPaid) {
+        const res = await fetch("/api/billing/portal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            returnUrl: window.location.href,
+          }),
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.error?.message || "Failed to launch billing portal");
+        }
+      } else {
+        const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID || "price_mock_pro_12345";
+        const res = await fetch("/api/billing/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            priceId,
+            successUrl: `${window.location.origin}/dashboard?session_id=cs_mock_${Date.now()}&price_id=${priceId}`,
+            cancelUrl: `${window.location.origin}/dashboard?checkout=cancel`,
+          }),
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.error?.message || "Failed to launch checkout session");
+        }
+      }
+    } catch (err) {
+      console.error("Billing action failed:", err);
+      alert("Billing system encountered an error. Please try again.");
+    } finally {
+      setIsBillingLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadProjects();
     loadUsage();
   }, [loadProjects, loadUsage]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const mockCheckoutSessionId = params.get("session_id");
+    const mockPriceId = params.get("price_id");
+    
+    if (mockCheckoutSessionId && mockPriceId && usageStats?.plan?.userId) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      fetch("/api/webhooks/stripe", {
+        method: "POST",
+        body: JSON.stringify({
+          type: "checkout.session.completed",
+          data: {
+            object: {
+              customer: "cus_mock_user",
+              subscription: `sub_mock_${Date.now()}`,
+              metadata: {
+                userId: usageStats.plan.userId,
+                priceId: mockPriceId,
+              },
+            },
+          },
+        }),
+      }).then(() => {
+        loadUsage();
+        loadProjects();
+      });
+    }
+  }, [loadUsage, loadProjects, usageStats]);
 
   // Handle streaming generation request
   const handleGenerate = async (e: React.FormEvent) => {
@@ -196,12 +273,29 @@ export function DashboardClient() {
         <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-4 flex items-center justify-between">
           <div>
             <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Subscription Plan</p>
-            <h3 className="text-lg font-extrabold mt-1 text-white capitalize">
+            <h3 className="text-lg font-extrabold mt-1 text-white capitalize animate-pulse-slow">
               {usageStats?.plan?.plan || "Free"} Plan
             </h3>
           </div>
-          <div className="px-2.5 py-1 rounded-full text-[10px] font-bold text-white bg-gradient-to-r from-[oklch(0.60_0.27_270)] to-[oklch(0.53_0.28_310)] select-none">
-            Active
+          <div className="flex flex-col gap-1.5 items-end">
+            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-gradient-to-r from-[oklch(0.60_0.27_270)] to-[oklch(0.53_0.28_310)] select-none">
+              Active
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 text-[9px] px-2 py-0.5 border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white"
+              onClick={handleBilling}
+              disabled={isBillingLoading}
+            >
+              {isBillingLoading ? (
+                <Loader2 className="w-2.5 h-2.5 animate-spin" />
+              ) : usageStats?.plan?.plan === "pro" || usageStats?.plan?.plan === "enterprise" ? (
+                "Manage Billing"
+              ) : (
+                "Upgrade to Pro"
+              )}
+            </Button>
           </div>
         </Card>
 

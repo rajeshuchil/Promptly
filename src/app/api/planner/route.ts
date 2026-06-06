@@ -3,6 +3,7 @@ import { z } from "zod";
 import { PlannerService } from "@/lib/ai/planner/planner";
 import { AIError } from "@/lib/ai/types";
 import { requireUser } from "@/lib/auth";
+import { EntitlementsService } from "@/lib/billing";
 import { UsageService } from "@/lib/usage";
 
 const PlannerRequestSchema = z.object({
@@ -11,6 +12,7 @@ const PlannerRequestSchema = z.object({
 
 export async function POST(request: Request) {
   const user = await requireUser();
+  const usageService = UsageService.getInstance();
   let status: "success" | "failed" = "success";
   let errorMessage: string | null = null;
   let promptText = "";
@@ -34,15 +36,15 @@ export async function POST(request: Request) {
 
     promptText = parsed.data.prompt;
 
-    // Check usage limits
-    const usageService = UsageService.getInstance();
-    const planDetails = await usageService.getPlanDetails(user.id);
-    if (planDetails.isOverLimit) {
+    // Check usage limits using entitlements policy
+    const entitlementsService = EntitlementsService.getInstance();
+    const check = await entitlementsService.canGenerate(user.id);
+    if (!check.allowed) {
       return NextResponse.json(
         {
           success: false,
           error: {
-            message: `Usage limit exceeded (${planDetails.generationsUsed}/${planDetails.generationLimit} generations). Please upgrade your plan.`,
+            message: check.message,
             code: "LIMIT_EXCEEDED",
           },
         },

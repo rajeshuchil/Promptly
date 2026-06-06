@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { DeployService } from "@/lib/deploy/deploy-service";
 import { ProjectService } from "@/lib/projects/project-service";
 import { getCurrentUser } from "@/lib/auth";
+import { EntitlementsService } from "@/lib/billing";
 
 type RouteContext = {
   params: Promise<{
@@ -26,6 +27,19 @@ export async function POST(request: Request, { params }: RouteContext) {
         error: { message: "Unauthorized: Authentication required" },
       }),
       { status: 401, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  // Check deploy capability using entitlements service
+  const entitlementsService = EntitlementsService.getInstance();
+  const check = await entitlementsService.canDeploy(user.id);
+  if (!check.allowed) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { message: check.message },
+      }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
     );
   }
 
