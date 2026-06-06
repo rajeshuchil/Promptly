@@ -29,16 +29,9 @@ import * as schema from "./schema";
 
 // ── Guard ─────────────────────────────────────────────────────────────────────
 
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error(
-    "[FastApp] DATABASE_URL is not set.\n" +
-      "1. Copy .env.example → .env.local\n" +
-      "2. Paste the *pooled* connection string from console.neon.tech\n" +
-      "   (Connection Details → Connection string → 'Pooled connection' toggle ON)",
-  );
-}
+const connectionString =
+  process.env.DATABASE_URL ||
+  "postgres://postgres:postgres@localhost:5432/fastapp_mock";
 
 // ── Client ────────────────────────────────────────────────────────────────────
 

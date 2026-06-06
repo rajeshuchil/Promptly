@@ -12,11 +12,11 @@ import {
   timestamp,
   uuid,
   boolean,
-  jsonb,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import type { Plan } from "@/lib/ai/planner/schemas";
+import type { GeneratedProjectMeta, DeploymentState } from "@/lib/projects/types";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
@@ -70,14 +70,6 @@ export const users = pgTable(
  *  deployed   – live on the web
  *  failed     – generation or deploy error
  */
-export type DeploymentState =
-  | "idle"
-  | "generating"
-  | "generated"
-  | "deploying"
-  | "deployed"
-  | "failed";
-
 export const projects = pgTable(
   "projects",
   {
@@ -103,7 +95,7 @@ export const projects = pgTable(
      * e.g. { pageTitle, colorPalette, fonts, seoMeta }
      */
     generatedMeta: jsonb("generated_meta").$type<
-      Plan | Record<string, unknown> | null
+      GeneratedProjectMeta | null
     >(),
 
     // Deployment lifecycle

@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { PlannerService } from "@/lib/ai/planner/planner";
 import { GeneratorService } from "@/lib/ai/generator/generator";
 import { HtmlValidator } from "@/lib/ai/validator/validator";
+import { ProjectService } from "@/lib/projects/project-service";
 import { GenerateRequestSchema } from "@/lib/ai/generator/schemas";
 import { AIError } from "@/lib/ai/types";
-
 
 export async function POST(request: Request) {
   // ── 1. Validate request body ───────────────────────────────────────────────
@@ -123,7 +123,52 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── 5. Return Success ──────────────────────────────────────────────────────
+  // ── 5. Persist Generation results in Database ──────────────────────────────
+  let project;
+  try {
+    const projectService = ProjectService.getInstance();
+    const userId = await projectService.getOrCreateDefaultUser();
+
+    // Derive a clean human-readable name from plan or prompt
+    const capitalizedType = plan.pageType
+      ? plan.pageType.charAt(0).toUpperCase() + plan.pageType.slice(1)
+      : "Landing Page";
+    const projectName = `FastApp ${capitalizedType} - ${style}`;
+
+    // Structure metadata cleanly
+    const generatedMeta = {
+      plan,
+      generatorMeta: generatorOutput.meta,
+      validation: {
+        valid: validationReport.valid,
+        repaired: validationReport.repaired,
+        issues: validationReport.issues,
+      },
+    };
+
+    project = await projectService.createProject({
+      userId,
+      name: projectName,
+      prompt,
+      generatedHtml: validationReport.html,
+      generatedMeta,
+      deploymentState: "generated",
+      aiModel: generatorOutput.meta.model,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          message: `Persistence phase failed: ${error instanceof Error ? error.message : String(error)}`,
+          phase: "persistence",
+        },
+      },
+      { status: 500 }
+    );
+  }
+
+  // ── 6. Return Success ──────────────────────────────────────────────────────
   return NextResponse.json(
     {
       success: true,
@@ -135,6 +180,7 @@ export async function POST(request: Request) {
         html: validationReport.html,
       },
       html: validationReport.html,
+      projectId: project.id,
     },
     { status: 200 }
   );

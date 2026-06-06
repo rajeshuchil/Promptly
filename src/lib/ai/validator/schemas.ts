@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-/**
- * Standard AI refusal phrases.
- * If these are matched, the generation is treated as an AI failure, not real HTML.
- */
 export const AI_REFUSAL_PATTERNS = [
   /i am sorry/i,
   /i cannot/i,
