@@ -16,3 +16,9 @@ export interface PreviewProject {
   generatedHtml: string | null;
   createdAt: Date;
 }
+
+export interface DeployStep {
+  name: string;
+  status: "pending" | "running" | "completed" | "failed";
+  message: string;
+}

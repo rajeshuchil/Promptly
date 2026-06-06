@@ -59,8 +59,8 @@ export interface UpdateProjectInput {
   generatedCss?: string;
   generatedMeta?: GeneratedProjectMeta;
   deploymentState?: DeploymentState;
-  deployedUrl?: string;
-  errorMessage?: string;
-  aiModel?: string;
+  deployedUrl?: string | null;
+  errorMessage?: string | null;
+  aiModel?: string | null;
   isArchived?: boolean;
 }

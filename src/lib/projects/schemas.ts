@@ -16,8 +16,8 @@ export const UpdateProjectSchema = z.object({
   generatedHtml: z.string().optional(),
   generatedCss: z.string().optional(),
   deploymentState: z.enum(["idle", "generating", "generated", "deploying", "deployed", "failed"]).optional(),
-  deployedUrl: z.string().url().optional().or(z.literal("")),
-  errorMessage: z.string().optional(),
-  aiModel: z.string().optional(),
+  deployedUrl: z.string().url().optional().or(z.literal("")).nullable(),
+  errorMessage: z.string().optional().nullable(),
+  aiModel: z.string().optional().nullable(),
   isArchived: z.boolean().optional(),
 });
