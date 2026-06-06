@@ -1,39 +1,11 @@
 import { NextResponse } from "next/server";
 import { PlannerService } from "@/lib/ai/planner/planner";
 import { GeneratorService } from "@/lib/ai/generator/generator";
+import { HtmlValidator } from "@/lib/ai/validator/validator";
 import { GenerateRequestSchema } from "@/lib/ai/generator/schemas";
 import { AIError } from "@/lib/ai/types";
 
-/**
- * POST /api/generate
- *
- * Full pipeline:  Prompt → Planner → Generator → HTML
- *
- * Request body:
- *   {
- *     "prompt": string,          // required, 1-2000 chars
- *     "style":  "standard"       // optional: "standard" | "minimal" | "rich"
- *              | "minimal"
- *              | "rich"
- *   }
- *
- * Success response (200):
- *   {
- *     "success": true,
- *     "plan":    { ...Plan },
- *     "html":    "<html>...</html>",
- *     "meta":    { model, promptStyle, durationMs, outputLength, generatedAt }
- *   }
- *
- * Error response:
- *   {
- *     "success": false,
- *     "error":   { "message": string, "code"?: string, "phase"?: string }
- *   }
- *
- * The "phase" field tells the caller where in the pipeline the failure occurred:
- *   "validation" | "planning" | "generation"
- */
+
 export async function POST(request: Request) {
   // ── 1. Validate request body ───────────────────────────────────────────────
   let body: unknown;
@@ -129,14 +101,42 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── 4. Return ──────────────────────────────────────────────────────────────
+  // ── 4. Run Validator & Repair ──────────────────────────────────────────────
+  const validator = HtmlValidator.getInstance();
+  const validationReport = validator.validateAndRepair(generatorOutput.html);
+
+  if (!validationReport.valid) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          message: "Generated website failed HTML validation and could not be repaired",
+          phase: "validation",
+          validation: {
+            valid: validationReport.valid,
+            repaired: validationReport.repaired,
+            issues: validationReport.issues,
+          },
+        },
+      },
+      { status: 422 }
+    );
+  }
+
+  // ── 5. Return Success ──────────────────────────────────────────────────────
   return NextResponse.json(
     {
       success: true,
       plan,
-      html: generatorOutput.html,
-      meta: generatorOutput.meta,
+      validation: {
+        valid: validationReport.valid,
+        repaired: validationReport.repaired,
+        issues: validationReport.issues,
+        html: validationReport.html,
+      },
+      html: validationReport.html,
     },
     { status: 200 }
   );
 }
+

@@ -49,12 +49,6 @@ export class GeneratorService {
 
   // ── Output cleaner ─────────────────────────────────────────────────────────
 
-  /**
-   * Strip any leading/trailing whitespace or markdown fences that a model
-   * might still emit despite explicit instructions not to.
-   *
-   * This is a best-effort pre-validation clean — NOT a full HTML repair.
-   */
   private cleanRawOutput(raw: string): string {
     let cleaned = raw.trim();
 
@@ -70,21 +64,14 @@ export class GeneratorService {
   // ── Output validator ───────────────────────────────────────────────────────
 
   private validateOutput(html: string): string {
-    const result = GeneratorOutputSchema.safeParse(html);
-
-    if (!result.success) {
-      const issues = result.error.issues
-        .map((i) => i.message)
-        .join("; ");
-
+    if (!html || html.trim().length === 0) {
       throw new AIError(
-        `Generated HTML failed validation: ${issues}`,
+        "Generated HTML is empty",
         AIErrorCode.INVALID_SCHEMA,
         500
       );
     }
-
-    return result.data;
+    return html;
   }
 
   // ── Core generation ────────────────────────────────────────────────────────
@@ -126,7 +113,7 @@ export class GeneratorService {
     // 4. Clean raw output
     const cleaned = this.cleanRawOutput(rawHtml);
 
-    // 5. Validate output (throws on failure — not retried)
+    // 5. Basic sanity validation (detailed validation is delegated to the Validator service)
     const validatedHtml = this.validateOutput(cleaned);
 
     const durationMs = Date.now() - startMs;
@@ -143,20 +130,9 @@ export class GeneratorService {
     };
   }
 
+
   // ── Generation with retry ──────────────────────────────────────────────────
 
-  /**
-   * Wraps generate() with exponential-backoff retry.
-   *
-   * Non-retried errors (deterministic failures):
-   *   - INVALID_INPUT   → fix the input, not the retry
-   *   - INVALID_SCHEMA  → the model produced structurally invalid HTML;
-   *                       retrying with the same prompt is unlikely to help
-   *                       at this stage — escalate to the caller
-   *
-   * Retried errors (transient):
-   *   - PROVIDER_ERROR, PROVIDER_UNAVAILABLE, RATE_LIMIT_EXCEEDED
-   */
   async generateWithRetry(
     input: GeneratorInput,
     maxRetries: number = 2,

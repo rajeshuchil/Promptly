@@ -103,9 +103,9 @@ export class GeminiProvider implements AIProvider {
     }
   }
 
-  private toJsonSchema(schema: z.ZodSchema<any>): Record<string, any> {
-    const jsonSchema = zodToJsonSchema(schema as any, "Schema");
-    return jsonSchema as Record<string, any>;
+  private toJsonSchema(schema: z.ZodSchema<unknown>): Record<string, unknown> {
+    const jsonSchema = zodToJsonSchema(schema as z.ZodTypeAny, "Schema");
+    return jsonSchema as Record<string, unknown>;
   }
 
   private parseJsonContent(rawText: string): unknown {
