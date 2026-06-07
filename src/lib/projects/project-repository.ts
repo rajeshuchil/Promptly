@@ -29,6 +29,7 @@ export class ProjectRepository {
         generatedMeta: data.generatedMeta ?? null,
         deploymentState: data.deploymentState ?? "idle",
         aiModel: data.aiModel ?? null,
+        isFavorite: data.isFavorite ?? false,
       })
       .returning();
 

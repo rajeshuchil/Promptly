@@ -66,3 +66,36 @@ export async function DELETE(request: Request, { params }: RouteContext) {
     );
   }
 }
+
+/**
+ * PATCH /api/projects/[id]
+ *
+ * Update project details (rename name, update isFavorite status, etc.)
+ */
+export async function PATCH(request: Request, { params }: RouteContext) {
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+    const body = await request.json();
+    const projectService = ProjectService.getInstance();
+    
+    const project = await projectService.updateProject(id, user.id, {
+      name: body.name,
+      isFavorite: body.isFavorite,
+    });
+
+    return NextResponse.json({ success: true, project }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to update project";
+    const statusCode = (error as any).statusCode ?? (message.includes("Unauthorized") ? 401 : 500);
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          message,
+        },
+      },
+      { status: statusCode }
+    );
+  }
+}

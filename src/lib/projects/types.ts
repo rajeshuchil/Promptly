@@ -36,6 +36,7 @@ export interface Project {
   deployedUrl: string | null;
   errorMessage: string | null;
   aiModel: string | null;
+  isFavorite: boolean;
   isArchived: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -50,6 +51,7 @@ export interface CreateProjectInput {
   generatedMeta?: GeneratedProjectMeta;
   deploymentState?: DeploymentState;
   aiModel?: string;
+  isFavorite?: boolean;
 }
 
 export interface UpdateProjectInput {
@@ -62,5 +64,6 @@ export interface UpdateProjectInput {
   deployedUrl?: string | null;
   errorMessage?: string | null;
   aiModel?: string | null;
+  isFavorite?: boolean;
   isArchived?: boolean;
 }

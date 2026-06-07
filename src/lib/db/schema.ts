@@ -115,6 +115,9 @@ export const projects = pgTable(
     // AI model used for generation (e.g. "gemini-2.5-pro", "gpt-4o")
     aiModel: text("ai_model"),
 
+    // Favorite / Starred flag
+    isFavorite: boolean("is_favorite").default(false).notNull(),
+
     // Soft-delete / archive
     isArchived: boolean("is_archived").default(false).notNull(),
 
