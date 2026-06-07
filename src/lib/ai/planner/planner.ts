@@ -9,6 +9,7 @@ import {
 import { AIError, AIErrorCode } from "../types";
 import { getTemplateById } from "@/lib/templates/templates";
 import { getBlueprintForPageType } from "@/lib/templates/blueprint";
+import { compileDesignSystemKnowledge } from "@/lib/design-system";
 
 export type PlannerStyle = "default" | "creative" | "accessible";
 
@@ -105,11 +106,19 @@ You MUST design the page structure matching these exact template specs, adapting
     } else {
       // Auto-detect blueprint by page type keywords
       const lowerPrompt = userPrompt.toLowerCase();
-      if (lowerPrompt.includes("dashboard") || lowerPrompt.includes("admin") || lowerPrompt.includes("portal")) {
+      if (lowerPrompt.includes("admin panel") || lowerPrompt.includes("admin")) {
+        resolvedBlueprint = getBlueprintForPageType("admin-panel");
+      } else if (lowerPrompt.includes("crm") || lowerPrompt.includes("relationship") || lowerPrompt.includes("customer relation")) {
+        resolvedBlueprint = getBlueprintForPageType("crm");
+      } else if (lowerPrompt.includes("analytics") || lowerPrompt.includes("charts") || lowerPrompt.includes("bi dashboard") || lowerPrompt.includes("metrics console")) {
+        resolvedBlueprint = getBlueprintForPageType("analytics");
+      } else if (lowerPrompt.includes("dashboard") || lowerPrompt.includes("portal")) {
         resolvedBlueprint = getBlueprintForPageType("dashboard");
       } else if (lowerPrompt.includes("portfolio") || lowerPrompt.includes("resume") || lowerPrompt.includes("cv")) {
         resolvedBlueprint = getBlueprintForPageType("portfolio");
-      } else if (lowerPrompt.includes("landing") || lowerPrompt.includes("homepage") || lowerPrompt.includes("startup")) {
+      } else if (lowerPrompt.includes("documentation") || lowerPrompt.includes("docs") || lowerPrompt.includes("manual")) {
+        resolvedBlueprint = getBlueprintForPageType("documentation");
+      } else {
         resolvedBlueprint = getBlueprintForPageType("landing");
       }
     }
@@ -128,6 +137,10 @@ Apply these rules to reduce layout ambiguity:
     if (blueprintContext || templateContext) {
       userMessage += `\n\nAdditional layout & structure guidelines:${blueprintContext}${templateContext}`;
     }
+
+    // Inject compiled design system catalog
+    const designSystemKnowledge = compileDesignSystemKnowledge();
+    userMessage += `\n\n[DESIGN CATALOG CONTEXT]\nUse the following Design System elements, color presets, spacing and typography tokens to make your choices:\n${designSystemKnowledge}`;
 
     try {
       const plan = await this.provider.generateStructured(

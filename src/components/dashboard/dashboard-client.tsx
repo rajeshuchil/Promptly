@@ -15,7 +15,7 @@ import { useGenerationStream } from "./hooks/use-generation-stream";
 
 export function DashboardClient() {
   const [prompt, setPrompt] = useState("");
-  const [style, setStyle] = useState<"standard" | "minimal" | "rich">("standard");
+  const [style, setStyle] = useState<"standard" | "minimal" | "rich" | "modern-saas" | "glassmorphism" | "enterprise" | "startup">("modern-saas");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -194,12 +194,14 @@ export function DashboardClient() {
                     id="style-select"
                     className="bg-[var(--color-surface-950)] border border-[var(--color-border)] rounded-[var(--radius-md)] px-2.5 py-1 text-xs text-[var(--color-surface-100)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand-500)]"
                     value={style}
-                    onChange={(e) => setStyle(e.target.value as typeof style)}
+                    onChange={(e) => setStyle(e.target.value as any)}
                     disabled={isGenerating}
                   >
-                    <option value="standard">Standard Classic</option>
+                    <option value="modern-saas">Modern SaaS</option>
                     <option value="minimal">Minimalist Clean</option>
-                    <option value="rich">Rich Vibrant</option>
+                    <option value="glassmorphism">Glassmorphism</option>
+                    <option value="enterprise">Enterprise</option>
+                    <option value="startup">Startup</option>
                   </select>
                 </div>
 

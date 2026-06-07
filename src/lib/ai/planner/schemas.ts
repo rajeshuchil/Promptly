@@ -35,6 +35,9 @@ export const PageTypeSchema = z.enum([
   "saas-homepage",
   "contact",
   "about",
+  "admin-panel",
+  "crm",
+  "analytics",
 ]);
 export type PageType = z.infer<typeof PageTypeSchema>;
 

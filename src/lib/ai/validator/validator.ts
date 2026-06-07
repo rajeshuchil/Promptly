@@ -1,6 +1,7 @@
 import { AI_REFUSAL_PATTERNS, SEMANTIC_TAG_PATTERNS } from "./schemas";
 import { repairHtml } from "./repair";
 import type { ValidationIssue, ValidationReport, ValidatorOptions } from "./types";
+import { QualityEvaluator } from "./quality-evaluator";
 
 export class HtmlValidator {
   private static instance: HtmlValidator;
@@ -154,11 +155,14 @@ export class HtmlValidator {
     // Check if there are any error severity issues
     const hasErrors = issues.some((issue) => issue.severity === "error");
 
+    const quality = QualityEvaluator.getInstance().evaluate(html, options?.plan);
+
     return {
       valid: !hasErrors,
       repaired: false,
       issues: issues.map((i) => `[${i.severity.toUpperCase()}] ${i.rule}: ${i.message}`),
       html,
+      quality,
     };
   }
 
@@ -186,11 +190,14 @@ export class HtmlValidator {
       }
     }
 
+    const quality = QualityEvaluator.getInstance().evaluate(repairResult.html, options?.plan);
+
     return {
       valid: repairedReport.valid,
       repaired: repairResult.repaired || initialReport.repaired,
       issues: finalIssues,
       html: repairResult.html,
+      quality,
     };
   }
 }

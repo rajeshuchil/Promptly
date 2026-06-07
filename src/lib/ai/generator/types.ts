@@ -18,7 +18,7 @@ export interface GenerationMeta {
   generatedAt: string;
 }
 
-export type GeneratorPromptStyle = "standard" | "minimal" | "rich";
+export type GeneratorPromptStyle = "standard" | "minimal" | "rich" | "modern-saas" | "glassmorphism" | "enterprise" | "startup";
 
 export interface GeneratorOptions {
   style?: GeneratorPromptStyle;

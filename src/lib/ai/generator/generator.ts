@@ -6,6 +6,7 @@ import {
   selectGeneratorPromptBuilder,
 } from "./prompts";
 import type { GeneratorInput, GeneratorOutput, GeneratorOptions } from "./types";
+import { compileDesignSystemKnowledge } from "@/lib/design-system";
 
 
 export class GeneratorService {
@@ -94,7 +95,7 @@ export class GeneratorService {
     let rawHtml: string;
     try {
       rawHtml = await this.provider.generateText(userMessage, {
-        systemPrompt: GENERATOR_SYSTEM_PROMPT,
+        systemPrompt: `${GENERATOR_SYSTEM_PROMPT}\n\n${compileDesignSystemKnowledge()}`,
         temperature: options?.temperature ?? 0.7,
         maxTokens: options?.maxTokens ?? 16_384,
         userId: options?.userId,
@@ -147,7 +148,7 @@ export class GeneratorService {
 
     try {
       const stream = this.provider.streamText(userMessage, {
-        systemPrompt: GENERATOR_SYSTEM_PROMPT,
+        systemPrompt: `${GENERATOR_SYSTEM_PROMPT}\n\n${compileDesignSystemKnowledge()}`,
         temperature: options?.temperature ?? 0.7,
         maxTokens: options?.maxTokens ?? 16_384,
         userId: options?.userId,

@@ -180,6 +180,55 @@ Generate a visually stunning, richly detailed HTML page.
 Output ONLY the raw HTML starting with <!DOCTYPE html>.`;
 }
 
+export function buildModernSaasGeneratorPrompt(userPrompt: string, plan: Plan): string {
+  return `ORIGINAL USER REQUEST:
+"${userPrompt}"
+
+${serialisePlan(plan)}
+
+Generate a premium, modern SaaS-styled HTML page.
+- Apply high-tech indigo/violet gradients, dark-mode-first slate colors, and precise card boundaries.
+- Build clean, interactive-feeling grid structures.
+- Ensure all interactive elements look professional and high-fidelity.
+Output ONLY the raw HTML starting with <!DOCTYPE html>.`;
+}
+
+export function buildGlassmorphismGeneratorPrompt(userPrompt: string, plan: Plan): string {
+  return `ORIGINAL USER REQUEST:
+"${userPrompt}"
+
+${serialisePlan(plan)}
+
+Generate a stunning Glassmorphism HTML page.
+- Focus on frosted translucent panels (bg-white/5 backdrop-blur-xl border border-white/8), soft neon fuchsia/violet radial glows, and floating layered layouts.
+- Add CSS animations for glows and container transitions.
+Output ONLY the raw HTML starting with <!DOCTYPE html>.`;
+}
+
+export function buildEnterpriseGeneratorPrompt(userPrompt: string, plan: Plan): string {
+  return `ORIGINAL USER REQUEST:
+"${userPrompt}"
+
+${serialisePlan(plan)}
+
+Generate a clean, highly professional Enterprise HTML page.
+- Use sky-blue and teal highlights, sturdy slate block backgrounds, and compact layouts suitable for business platforms.
+- Prioritize high legibility, clean visual zones, and accessible structures.
+Output ONLY the raw HTML starting with <!DOCTYPE html>.`;
+}
+
+export function buildStartupGeneratorPrompt(userPrompt: string, plan: Plan): string {
+  return `ORIGINAL USER REQUEST:
+"${userPrompt}"
+
+${serialisePlan(plan)}
+
+Generate an energetic, bold Startup HTML page.
+- Use pitch-black backgrounds, hot neon orange/pink gradients, statement-driven typography, and sharp border dividers.
+- Apply springy CSS animations and high-contrast styling details.
+Output ONLY the raw HTML starting with <!DOCTYPE html>.`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PROMPT SELECTOR
 // ─────────────────────────────────────────────────────────────────────────────
@@ -192,8 +241,16 @@ export function selectGeneratorPromptBuilder(
       return buildMinimalGeneratorPrompt;
     case "rich":
       return buildRichGeneratorPrompt;
+    case "modern-saas":
+      return buildModernSaasGeneratorPrompt;
+    case "glassmorphism":
+      return buildGlassmorphismGeneratorPrompt;
+    case "enterprise":
+      return buildEnterpriseGeneratorPrompt;
+    case "startup":
+      return buildStartupGeneratorPrompt;
     case "standard":
     default:
-      return buildGeneratorUserPrompt;
+      return buildModernSaasGeneratorPrompt;
   }
 }

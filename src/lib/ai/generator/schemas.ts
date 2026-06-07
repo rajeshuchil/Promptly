@@ -36,7 +36,7 @@ export const GenerateRequestSchema = z.object({
     .max(2000, "Prompt exceeds maximum length (2 000 characters)")
     .trim(),
   style: z
-    .enum(["standard", "minimal", "rich"])
+    .enum(["standard", "minimal", "rich", "modern-saas", "glassmorphism", "enterprise", "startup"])
     .optional()
     .default("standard"),
   templateId: z.string().optional(),
