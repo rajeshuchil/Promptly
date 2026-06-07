@@ -20,7 +20,7 @@ interface ProjectDetailClientProps {
 export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps) {
   const router = useRouter();
   const [project, setProject] = useState<Project>(initialProject);
-  const [activeTab, setActiveTab] = useState<"prompt" | "plan" | "html" | "meta">("prompt");
+  const [activeTab, setActiveTab] = useState<"prompt" | "plan" | "html" | "meta" | "deployments">("prompt");
   const [copied, setCopied] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(project.name);
@@ -33,6 +33,11 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
         .then((r) => r.json())
         .then((d) => { if (d.success && d.project) setProject(d.project); });
     },
+    onDone: () => {
+      fetch(`/api/projects/${project.id}`)
+        .then((r) => r.json())
+        .then((d) => { if (d.success && d.project) setProject(d.project); });
+    }
   });
 
   const handleCopyCode = () => {
@@ -92,7 +97,9 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
   const getStatusColor = (status: string) => {
     switch (status) {
       case "deployed": return "text-emerald-400 border-emerald-500/20 bg-emerald-500/10";
-      case "deploying": return "text-sky-400 border-sky-500/20 bg-sky-500/10 animate-pulse";
+      case "deploying":
+      case "building":
+      case "queued": return "text-sky-400 border-sky-500/20 bg-sky-500/10 animate-pulse";
       case "failed": return "text-rose-400 border-rose-500/20 bg-rose-500/10";
       default: return "text-amber-400 border-amber-500/20 bg-amber-500/10";
     }
@@ -185,11 +192,12 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
         {/* Left: Tabbed Details */}
         <div className="lg:col-span-5 flex flex-col gap-6">
           <Card className="flex-1 flex flex-col border-[var(--color-border)] bg-[var(--color-surface-900)] min-h-0 overflow-hidden">
-            <div className="flex border-b border-[var(--color-border)] bg-black/10 shrink-0">
-              <button onClick={() => setActiveTab("prompt")} className={tabCls(activeTab === "prompt")}>Prompt & Details</button>
-              <button onClick={() => setActiveTab("plan")} className={tabCls(activeTab === "plan")}>AI Planner Log</button>
-              <button onClick={() => setActiveTab("html")} className={tabCls(activeTab === "html")}>Generated HTML</button>
+            <div className="flex border-b border-[var(--color-border)] bg-black/10 shrink-0 overflow-x-auto scrollbar-none">
+              <button onClick={() => setActiveTab("prompt")} className={tabCls(activeTab === "prompt")}>Prompt</button>
+              <button onClick={() => setActiveTab("plan")} className={tabCls(activeTab === "plan")}>Planner Log</button>
+              <button onClick={() => setActiveTab("html")} className={tabCls(activeTab === "html")}>HTML</button>
               <button onClick={() => setActiveTab("meta")} className={tabCls(activeTab === "meta")}>Metadata</button>
+              <button onClick={() => setActiveTab("deployments")} className={tabCls(activeTab === "deployments")}>Deploy History</button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 text-xs min-h-0 leading-relaxed">
@@ -308,6 +316,59 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Deploy History Tab */}
+              {activeTab === "deployments" && (
+                <div className="space-y-4">
+                  <div>
+                    <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)] mb-1.5">Last Deployment Info</h5>
+                    <div className="bg-[var(--color-surface-950)] p-3 rounded-md border border-[var(--color-border)] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[var(--color-surface-450)]">Status:</span>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase border ${getStatusColor(project.deploymentState)}`}>
+                          {project.deploymentState}
+                        </span>
+                      </div>
+                      {project.deploymentTimestamp && (
+                        <div className="flex justify-between text-[11px]"><span className="text-[var(--color-surface-450)]">Deployed At:</span> <span className="text-white">{new Date(project.deploymentTimestamp).toLocaleString()}</span></div>
+                      )}
+                      {project.deployedUrl && (
+                        <div className="flex justify-between text-[11px]"><span className="text-[var(--color-surface-450)]">URL:</span> <a href={project.deployedUrl} target="_blank" rel="noreferrer" className="text-[var(--color-brand-400)] hover:underline font-mono">{project.deployedUrl}</a></div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)] mb-1.5">Deployment Runs</h5>
+                    {project.deploymentMetadata?.history && project.deploymentMetadata.history.length > 0 ? (
+                      <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                        {project.deploymentMetadata.history.map((run: any, idx: number) => (
+                          <div key={run.id || idx} className="bg-[var(--color-surface-950)]/50 p-2.5 rounded border border-[var(--color-border)] space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-white text-[11px] font-mono">{run.id || "N/A"}</span>
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase border ${
+                                run.status === "deployed" ? "text-emerald-400 border-emerald-500/20 bg-emerald-500/10" : "text-rose-400 border-rose-500/20 bg-rose-500/10"
+                              }`}>{run.status}</span>
+                            </div>
+                            <div className="text-[10px] text-[var(--color-surface-400)] flex justify-between">
+                              <span>Provider: {run.providerName}</span>
+                              <span>{new Date(run.timestamp).toLocaleString()}</span>
+                            </div>
+                            {run.url && (
+                              <div className="text-[10px]"><span className="text-[var(--color-surface-450)]">URL:</span> <a href={run.url} target="_blank" rel="noreferrer" className="text-[var(--color-brand-400)] hover:underline font-mono">{run.url}</a></div>
+                            )}
+                            {run.errorMessage && (
+                              <div className="text-[10px] text-rose-400 font-medium">Error: {run.errorMessage}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 text-[var(--color-muted-fg)] border border-dashed border-[var(--color-border)] rounded-md">No past deployments recorded. Click 'Publish to Production' to deploy.</div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

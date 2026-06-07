@@ -19,6 +19,8 @@ export const projects = pgTable(
     deploymentState: text("deployment_state").$type<DeploymentState>().notNull().default("idle"),
     deployedUrl: text("deployed_url"),
     errorMessage: text("error_message"),
+    deploymentMetadata: jsonb("deployment_metadata"),
+    deploymentTimestamp: timestamp("deployment_timestamp", { withTimezone: true }),
     aiModel: text("ai_model"),
     isFavorite: boolean("is_favorite").default(false).notNull(),
     isArchived: boolean("is_archived").default(false).notNull(),
@@ -27,7 +29,7 @@ export const projects = pgTable(
   },
   (table) => [
     index("projects_user_id_idx").on(table.userId),
-    index("projects_deployment_state_idx").on(table.createdAt),
+    index("projects_deployment_state_idx").on(table.deploymentState),
     index("projects_created_at_idx").on(table.createdAt),
   ]
 );

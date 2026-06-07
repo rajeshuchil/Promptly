@@ -4,6 +4,8 @@ export type DeploymentState =
   | "idle"
   | "generating"
   | "generated"
+  | "queued"
+  | "building"
   | "deploying"
   | "deployed"
   | "failed";
@@ -35,6 +37,8 @@ export interface Project {
   deploymentState: DeploymentState;
   deployedUrl: string | null;
   errorMessage: string | null;
+  deploymentMetadata: any | null;
+  deploymentTimestamp: Date | null;
   aiModel: string | null;
   isFavorite: boolean;
   isArchived: boolean;
@@ -50,6 +54,10 @@ export interface CreateProjectInput {
   generatedCss?: string;
   generatedMeta?: GeneratedProjectMeta;
   deploymentState?: DeploymentState;
+  deployedUrl?: string | null;
+  errorMessage?: string | null;
+  deploymentMetadata?: any | null;
+  deploymentTimestamp?: Date | null;
   aiModel?: string;
   isFavorite?: boolean;
 }
@@ -63,6 +71,8 @@ export interface UpdateProjectInput {
   deploymentState?: DeploymentState;
   deployedUrl?: string | null;
   errorMessage?: string | null;
+  deploymentMetadata?: any | null;
+  deploymentTimestamp?: Date | null;
   aiModel?: string | null;
   isFavorite?: boolean;
   isArchived?: boolean;

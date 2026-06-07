@@ -28,6 +28,10 @@ export class ProjectRepository {
         generatedCss: data.generatedCss ?? null,
         generatedMeta: data.generatedMeta ?? null,
         deploymentState: data.deploymentState ?? "idle",
+        deployedUrl: data.deployedUrl ?? null,
+        errorMessage: data.errorMessage ?? null,
+        deploymentMetadata: data.deploymentMetadata ?? null,
+        deploymentTimestamp: data.deploymentTimestamp ?? null,
         aiModel: data.aiModel ?? null,
         isFavorite: data.isFavorite ?? false,
       })

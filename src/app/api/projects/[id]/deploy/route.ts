@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { DeployService } from "@/lib/deploy/deploy-service";
+import { DeploymentService } from "@/lib/deployments/deployment-service";
 import { ProjectService } from "@/lib/projects/project-service";
 import { getCurrentUser } from "@/lib/auth";
 import { EntitlementsService } from "@/lib/billing";
@@ -45,6 +45,11 @@ export async function POST(request: Request, { params }: RouteContext) {
 
   try {
     const { id } = await params;
+    
+    // Parse provider selection if specified in request url/body
+    const urlObj = new URL(request.url);
+    const providerName = urlObj.searchParams.get("provider") || "mock";
+
     const encoder = new TextEncoder();
 
     const stream = new ReadableStream({
@@ -56,8 +61,8 @@ export async function POST(request: Request, { params }: RouteContext) {
         };
 
         try {
-          const deployService = DeployService.getInstance();
-          const deployStream = deployService.deployStream(id, user.id);
+          const deploymentService = DeploymentService.getInstance();
+          const deployStream = deploymentService.deployStream(id, user.id, providerName);
 
           for await (const step of deployStream) {
             sendEvent("progress", step);

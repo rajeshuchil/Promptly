@@ -71,6 +71,30 @@ export function ProjectSidebar({
           <p className="text-[10px] text-[var(--color-muted-fg)] line-clamp-2 mb-1.5 leading-relaxed">
             {project.prompt}
           </p>
+          {project.deploymentState && project.deploymentState !== "idle" && (
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <span className={`px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase border ${
+                project.deploymentState === "deployed"
+                  ? "text-emerald-400 border-emerald-500/20 bg-emerald-500/10"
+                  : project.deploymentState === "failed"
+                  ? "text-rose-400 border-rose-500/20 bg-rose-500/10"
+                  : "text-sky-400 border-sky-500/20 bg-sky-500/10 animate-pulse"
+              }`}>
+                {project.deploymentState}
+              </span>
+              {project.deployedUrl && (
+                <a
+                  href={project.deployedUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-[8px] text-[var(--color-brand-400)] hover:underline flex items-center gap-0.5 font-bold"
+                >
+                  Visit <ExternalLink className="w-2 h-2" />
+                </a>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-1 text-[9px] text-[var(--color-surface-500)]">
             <Calendar className="w-2.5 h-2.5" />
             <span>{new Date(project.createdAt).toLocaleDateString()}</span>

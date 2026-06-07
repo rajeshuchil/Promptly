@@ -159,7 +159,7 @@ export function PreviewPanel({
           if (event === "progress" && dataText) {
             const step = JSON.parse(dataText);
             setDeployStep(step);
-            if (step.name === "complete" && step.url) {
+            if ((step.name === "complete" || step.name === "deployed") && step.url) {
               setDeployedUrl(step.url);
               // Trigger refresh to update dashboard live state badges
               if (onRefresh) onRefresh();
@@ -337,12 +337,12 @@ export function PreviewPanel({
             {/* Steps Visual List */}
             <div className="space-y-3.5 text-left">
               {[
-                { key: "routing", label: "Edge Routing Setup", desc: "Provisioning global routes" },
-                { key: "ssl", label: "SSL Certificate Activation", desc: "Securing transfer protocol" },
-                { key: "cdn", label: "CDN Content Distribution", desc: "Caching assets at the edge" },
+                { key: "queued", label: "Queued & Initialized", desc: "Setting up build workspace" },
+                { key: "building", label: "Asset Bundling & Compiling", desc: "Optimizing static bundle" },
+                { key: "deploying", label: "CDN Content Distribution", desc: "Caching assets at the edge" },
               ].map((item, idx) => {
-                const stepIdx = ["routing", "ssl", "cdn", "complete"].indexOf(deployStep?.name || "");
-                const currentIdx = ["routing", "ssl", "cdn"].indexOf(item.key);
+                const stepIdx = ["queued", "building", "deploying", "deployed"].indexOf(deployStep?.name || "");
+                const currentIdx = ["queued", "building", "deploying"].indexOf(item.key);
                 
                 let iconClass = "w-2.5 h-2.5 rounded-full bg-[var(--color-surface-700)]";
                 let textClass = "text-[var(--color-surface-400)]";
@@ -355,7 +355,7 @@ export function PreviewPanel({
                     iconClass = "w-2.5 h-2.5 rounded-full bg-emerald-500";
                     textClass = "text-[var(--color-surface-200)]";
                   }
-                } else if (deployStep?.name === "complete") {
+                } else if (deployStep?.name === "complete" || deployStep?.name === "deployed") {
                   iconClass = "w-2.5 h-2.5 rounded-full bg-emerald-500";
                   textClass = "text-[var(--color-surface-200)]";
                 } else if (deployStep?.name === item.key) {

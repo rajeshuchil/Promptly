@@ -20,9 +20,10 @@ interface DeployEventData {
 interface UseDeployStreamOptions {
   projectId: string;
   onDeployComplete?: (url: string) => void;
+  onDone?: () => void;
 }
 
-export function useDeployStream({ projectId, onDeployComplete }: UseDeployStreamOptions) {
+export function useDeployStream({ projectId, onDeployComplete, onDone }: UseDeployStreamOptions) {
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploySteps, setDeploySteps] = useState<DeployStep[]>([]);
   const [deployError, setDeployError] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export function useDeployStream({ projectId, onDeployComplete }: UseDeployStream
           return [...prev, step];
         });
 
-        if (step.name === "complete" && step.url) {
+        if ((step.name === "complete" || step.name === "deployed") && step.url) {
           onDeployComplete?.(step.url);
         }
       } else if (event === "error") {
@@ -53,10 +54,14 @@ export function useDeployStream({ projectId, onDeployComplete }: UseDeployStream
 
   const { start } = useSseStream<DeployEventData>({
     onEvent: handleEvent,
-    onDone: () => setIsDeploying(false),
+    onDone: () => {
+      setIsDeploying(false);
+      onDone?.();
+    },
     onError: (err) => {
       setDeployError(err.message);
       setIsDeploying(false);
+      onDone?.();
     },
   });
 
