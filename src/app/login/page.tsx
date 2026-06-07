@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Zap, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
@@ -72,17 +73,11 @@ export default function LoginPage() {
             <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[oklch(0.92_0.01_270)] to-[oklch(0.79_0.16_270)] bg-clip-text text-transparent">
-            Welcome to FastApp
+            Welcome back
           </h1>
           <p className="text-sm text-[oklch(0.70_0.02_270)] mt-1.5 text-center">
-            The multi-user AI-powered SaaS generation platform.
+            Sign in to your FastApp workspace to continue building.
           </p>
-        </div>
-
-        {/* Info Box */}
-        <div className="mb-6 p-4 rounded-2xl bg-[oklch(0.15_0.02_270/0.5)] border border-[oklch(0.20_0.02_270)] text-xs text-[oklch(0.80_0.02_270)] space-y-1">
-          <span className="font-semibold text-[oklch(0.60_0.27_270)]">💡 Frictionless Developer Mode</span>
-          <p>You can enter <strong>any email address</strong> (e.g. <code>user@example.com</code>). If the user does not exist, a new workspace will be auto-registered instantly.</p>
         </div>
 
         {/* Error message */}
@@ -152,6 +147,19 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        <p className="mt-5 text-center text-xs text-[oklch(0.55_0.02_270)]">
+          New to FastApp?{" "}
+          <span className="text-[oklch(0.69_0.22_270)] font-medium">
+            Enter any email to create a workspace instantly.
+          </span>
+        </p>
+
+        <div className="mt-4 text-center">
+          <Link href="/" className="text-xs text-[oklch(0.50_0.02_270)] hover:text-[oklch(0.70_0.02_270)] transition-colors">
+            ← Back to homepage
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,8 @@ import { ProjectService } from "@/lib/projects/project-service";
 import { requireUser } from "@/lib/auth";
 import { ProjectDetailClient } from "@/components/projects/project-detail-client";
 
+export const dynamic = "force-dynamic";
+
 type PageContext = {
   params: Promise<{
     id: string;

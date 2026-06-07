@@ -2,7 +2,6 @@ import { ProjectRepository } from "./project-repository";
 import { CreateProjectSchema, UpdateProjectSchema } from "./schemas";
 import type { CreateProjectInput, UpdateProjectInput, Project } from "./types";
 import { AIError, AIErrorCode } from "@/lib/ai/types";
-import { db, schema } from "@/lib/db";
 
 export class ProjectService {
   private static instance: ProjectService;
@@ -17,27 +16,6 @@ export class ProjectService {
     return ProjectService.instance;
   }
 
-  /**
-   * Helper to retrieve the first user in the database or create a default user.
-   * Deprecated: Use actual session authentication instead.
-   */
-  async getOrCreateDefaultUser(): Promise<string> {
-    const [firstUser] = await db.select().from(schema.users).limit(1);
-    if (firstUser) {
-      return firstUser.id;
-    }
-
-    const [newUser] = await db
-      .insert(schema.users)
-      .values({
-        email: "test@example.com",
-        name: "Test User",
-        emailVerified: true,
-      })
-      .returning();
-
-    return newUser.id;
-  }
 
   /**
    * Create a new project.

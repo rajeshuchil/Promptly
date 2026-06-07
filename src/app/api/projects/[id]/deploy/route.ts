@@ -46,9 +46,17 @@ export async function POST(request: Request, { params }: RouteContext) {
   try {
     const { id } = await params;
     
-    // Parse provider selection if specified in request url/body
     const urlObj = new URL(request.url);
     const providerName = urlObj.searchParams.get("provider") || "mock";
+    if (providerName !== "mock" && providerName !== "vercel") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: { message: `Invalid provider: '${providerName}'. Supported providers are 'mock' or 'vercel'.` },
+        },
+        { status: 400 }
+      );
+    }
 
     const encoder = new TextEncoder();
 

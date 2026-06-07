@@ -11,7 +11,7 @@ import {
   buildHtmlEditorUserPrompt,
 } from "./edit-prompts";
 import { HistoryService } from "./history-service";
-import type { IterationInput, IterationOutput } from "./edit-types";
+import type { IterationInput } from "./edit-types";
 import { AIError, AIErrorCode } from "../ai/types";
 import { compileDesignSystemKnowledge } from "../design-system";
 
