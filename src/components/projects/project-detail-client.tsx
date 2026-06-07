@@ -1,30 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-  ArrowLeft, 
-  Download, 
-  Globe, 
-  Cpu, 
-  Calendar, 
-  Sparkles, 
-  Code, 
-  BookOpen, 
-  Settings, 
-  Play, 
-  Copy, 
-  Check, 
-  Trash2, 
-  Edit, 
-  Loader2, 
-  AlertTriangle,
-  RefreshCw,
-  ExternalLink
+import {
+  ArrowLeft, Download, Globe, Cpu, Calendar, Sparkles, Code,
+  BookOpen, Settings, Play, Copy, Check, Trash2, Edit, Loader2,
+  AlertTriangle, RefreshCw, ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useDeployStream } from "@/hooks/use-deploy-stream";
 import type { Project } from "@/lib/projects/types";
 
 interface ProjectDetailClientProps {
@@ -36,18 +22,18 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
   const [project, setProject] = useState<Project>(initialProject);
   const [activeTab, setActiveTab] = useState<"prompt" | "plan" | "html" | "meta">("prompt");
   const [copied, setCopied] = useState(false);
-
-  // Rename states
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(project.name);
-
-  // Deploy states
-  const [isDeploying, setIsDeploying] = useState(false);
-  const [deploySteps, setDeploySteps] = useState<any[]>([]);
-  const [deployError, setDeployError] = useState<string | null>(null);
-
-  // General loading states
   const [isLoading, setIsLoading] = useState(false);
+
+  const { isDeploying, deploySteps, deployError, deploy } = useDeployStream({
+    projectId: project.id,
+    onDeployComplete: () => {
+      fetch(`/api/projects/${project.id}`)
+        .then((r) => r.json())
+        .then((d) => { if (d.success && d.project) setProject(d.project); });
+    },
+  });
 
   const handleCopyCode = () => {
     if (!project.generatedHtml) return;
@@ -57,10 +43,7 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
   };
 
   const handleSaveRename = async () => {
-    if (!renameValue.trim() || renameValue === project.name) {
-      setIsRenaming(false);
-      return;
-    }
+    if (!renameValue.trim() || renameValue === project.name) { setIsRenaming(false); return; }
     setIsLoading(true);
     try {
       const res = await fetch(`/api/projects/${project.id}`, {
@@ -69,10 +52,7 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
         body: JSON.stringify({ name: renameValue.trim() }),
       });
       const data = await res.json();
-      if (data.success && data.project) {
-        setProject(data.project);
-        setIsRenaming(false);
-      }
+      if (data.success && data.project) { setProject(data.project); setIsRenaming(false); }
     } catch (err) {
       console.error("Rename failed:", err);
     } finally {
@@ -86,12 +66,8 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
     try {
       const res = await fetch(`/api/projects/${project.id}`, { method: "DELETE" });
       const data = await res.json();
-      if (data.success) {
-        router.push("/projects");
-        router.refresh();
-      } else {
-        alert(data.error?.message || "Delete failed");
-      }
+      if (data.success) { router.push("/projects"); router.refresh(); }
+      else alert(data.error?.message ?? "Delete failed");
     } catch (err) {
       console.error("Delete failed:", err);
     } finally {
@@ -104,100 +80,13 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
     try {
       const res = await fetch(`/api/projects/${project.id}/duplicate`, { method: "POST" });
       const data = await res.json();
-      if (data.success && data.project) {
-        router.push(`/projects/${data.project.id}`);
-      } else {
-        alert(data.error?.message || "Duplicate failed");
-      }
+      if (data.success && data.project) router.push(`/projects/${data.project.id}`);
+      else alert(data.error?.message ?? "Duplicate failed");
     } catch (err) {
       console.error("Duplicate failed:", err);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDeploy = async () => {
-    setIsDeploying(true);
-    setDeployError(null);
-    setDeploySteps([]);
-
-    try {
-      const res = await fetch(`/api/projects/${project.id}/deploy`, { method: "POST" });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error?.message || `Deployment status code ${res.status}`);
-      }
-
-      if (!res.body) {
-        throw new Error("No response body received from deploy route");
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const messages = buffer.split("\n\n");
-        buffer = messages.pop() || "";
-
-        for (const msg of messages) {
-          if (!msg.trim()) continue;
-
-          const lines = msg.split("\n");
-          let event = "";
-          let dataText = "";
-
-          for (const line of lines) {
-            if (line.startsWith("event: ")) {
-              event = line.slice(7).trim();
-            } else if (line.startsWith("data: ")) {
-              dataText = line.slice(6).trim();
-            }
-          }
-
-          if (event && dataText) {
-            const data = JSON.parse(dataText);
-            if (event === "progress") {
-              setDeploySteps((prev) => {
-                // If step name already exists in list, update it, else append
-                const exists = prev.findIndex((s) => s.name === data.name);
-                if (exists >= 0) {
-                  const copy = [...prev];
-                  copy[exists] = data;
-                  return copy;
-                }
-                return [...prev, data];
-              });
-              
-              if (data.name === "complete" && data.url) {
-                // Refresh project details to fetch new deployed URL state
-                fetch(`/api/projects/${project.id}`)
-                  .then((r) => r.json())
-                  .then((d) => {
-                    if (d.success && d.project) {
-                      setProject(d.project);
-                    }
-                  });
-              }
-            } else if (event === "error") {
-              setDeployError(data.message);
-            }
-          }
-        }
-      }
-    } catch (err: any) {
-      setDeployError(err.message || "Failed to establish deployment stream connection");
-    } finally {
-      setIsDeploying(false);
-    }
-  };
-
-  const triggerExport = (format: "html" | "zip") => {
-    window.open(`/api/projects/${project.id}/export?format=${format}`);
   };
 
   const getStatusColor = (status: string) => {
@@ -209,9 +98,16 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
     }
   };
 
+  const tabCls = (active: boolean) =>
+    `flex-1 py-3 text-xs font-bold border-b-2 transition-all duration-200 ${
+      active
+        ? "border-[var(--color-brand-500)] text-white bg-[var(--color-surface-950)]/45"
+        : "border-transparent text-[var(--color-surface-400)] hover:text-white"
+    }`;
+
   return (
     <div className="space-y-6">
-      {/* Top Navigation Row */}
+      {/* Top Navigation */}
       <div className="flex items-center justify-between">
         <Link href="/projects">
           <Button variant="ghost" size="sm" className="text-white hover:text-white border border-transparent hover:border-[var(--color-border)] hover:bg-[var(--color-surface-800)] gap-1.5 h-8 text-xs">
@@ -219,45 +115,20 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
             Back to Projects
           </Button>
         </Link>
-
-        {/* Global actions */}
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white text-xs gap-1.5"
-            onClick={handleDuplicate}
-            disabled={isLoading}
-          >
-            <Copy className="w-3.5 h-3.5" />
-            Clone
+          <Button variant="outline" size="sm" className="h-8 border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white text-xs gap-1.5" onClick={handleDuplicate} disabled={isLoading}>
+            <Copy className="w-3.5 h-3.5" />Clone
           </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white text-xs gap-1.5"
-            onClick={() => router.push(`/dashboard?regenerateId=${project.id}`)}
-            disabled={isLoading}
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Re-generate
+          <Button variant="outline" size="sm" className="h-8 border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white text-xs gap-1.5" onClick={() => router.push(`/dashboard?regenerateId=${project.id}`)} disabled={isLoading}>
+            <RefreshCw className="w-3.5 h-3.5" />Re-generate
           </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-transparent hover:border-rose-500/30 text-xs gap-1.5"
-            onClick={handleDelete}
-            disabled={isLoading}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Delete
+          <Button variant="ghost" size="sm" className="h-8 hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 border border-transparent hover:border-rose-500/30 text-xs gap-1.5" onClick={handleDelete} disabled={isLoading}>
+            <Trash2 className="w-3.5 h-3.5" />Delete
           </Button>
         </div>
       </div>
 
-      {/* Main Info Header Card */}
+      {/* Header Card */}
       <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-5 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
@@ -268,27 +139,16 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                   className="bg-[var(--color-surface-950)] border border-[var(--color-brand-500)] rounded px-2.5 py-1 text-sm font-bold text-white focus:outline-none"
                   value={renameValue}
                   onChange={(e) => setRenameValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveRename();
-                    if (e.key === "Escape") setIsRenaming(false);
-                  }}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveRename(); if (e.key === "Escape") setIsRenaming(false); }}
                   autoFocus
                 />
-                <Button size="sm" className="h-8 text-xs" onClick={handleSaveRename} disabled={isLoading}>
-                  Save
-                </Button>
-                <Button size="sm" variant="ghost" className="h-8 text-xs text-white" onClick={() => setIsRenaming(false)}>
-                  Cancel
-                </Button>
+                <Button size="sm" className="h-8 text-xs" onClick={handleSaveRename} disabled={isLoading}>Save</Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs text-white" onClick={() => setIsRenaming(false)}>Cancel</Button>
               </div>
             ) : (
               <div className="flex items-center gap-2.5 group">
                 <h2 className="text-xl font-extrabold text-white">{project.name}</h2>
-                <button
-                  onClick={() => setIsRenaming(true)}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded text-[var(--color-surface-450)] hover:text-white transition-opacity"
-                  title="Rename project"
-                >
+                <button onClick={() => setIsRenaming(true)} className="opacity-0 group-hover:opacity-100 p-1 rounded text-[var(--color-surface-450)] hover:text-white transition-opacity" title="Rename project">
                   <Edit className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -299,92 +159,41 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                 <Calendar className="w-3.5 h-3.5 text-[var(--color-surface-500)]" />
                 Created on {new Date(project.createdAt).toLocaleString()}
               </span>
-
               {project.aiModel && (
                 <span className="flex items-center gap-1">
                   <Cpu className="w-3.5 h-3.5 text-[var(--color-surface-500)]" />
                   Model: {project.aiModel}
                 </span>
               )}
-
               {project.deployedUrl && (
-                <span className="flex items-center gap-1">
+                <a href={project.deployedUrl} target="_blank" rel="noreferrer" className="text-[var(--color-brand-400)] hover:underline flex items-center gap-0.5">
                   <Globe className="w-3.5 h-3.5 text-[var(--color-surface-500)]" />
-                  Link:&nbsp;
-                  <a
-                    href={project.deployedUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[var(--color-brand-400)] hover:underline flex items-center gap-0.5"
-                  >
-                    fastapp.site
-                    <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
-                </span>
+                  fastapp.site <ExternalLink className="w-2.5 h-2.5" />
+                </a>
               )}
             </div>
           </div>
 
-          {/* Deployment Status Badge */}
-          <div className="flex items-center gap-3 shrink-0">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(project.deploymentState)}`}>
-              Status: {project.deploymentState}
-            </span>
-          </div>
+          <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider shrink-0 ${getStatusColor(project.deploymentState)}`}>
+            Status: {project.deploymentState}
+          </span>
         </div>
       </Card>
 
-      {/* Grid: Details tabs & live preview */}
+      {/* Details + Preview Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
-        {/* Left Column: Details tabbed container */}
+        {/* Left: Tabbed Details */}
         <div className="lg:col-span-5 flex flex-col gap-6">
           <Card className="flex-1 flex flex-col border-[var(--color-border)] bg-[var(--color-surface-900)] min-h-0 overflow-hidden">
-            {/* Tabs Header */}
             <div className="flex border-b border-[var(--color-border)] bg-black/10 shrink-0">
-              <button
-                onClick={() => setActiveTab("prompt")}
-                className={`flex-1 py-3 text-xs font-bold border-b-2 transition-all duration-200 ${
-                  activeTab === "prompt"
-                    ? "border-[var(--color-brand-500)] text-white bg-[var(--color-surface-950)]/45"
-                    : "border-transparent text-[var(--color-surface-400)] hover:text-white"
-                }`}
-              >
-                Prompt & Details
-              </button>
-              <button
-                onClick={() => setActiveTab("plan")}
-                className={`flex-1 py-3 text-xs font-bold border-b-2 transition-all duration-200 ${
-                  activeTab === "plan"
-                    ? "border-[var(--color-brand-500)] text-white bg-[var(--color-surface-950)]/45"
-                    : "border-transparent text-[var(--color-surface-400)] hover:text-white"
-                }`}
-              >
-                AI Planner Log
-              </button>
-              <button
-                onClick={() => setActiveTab("html")}
-                className={`flex-1 py-3 text-xs font-bold border-b-2 transition-all duration-200 ${
-                  activeTab === "html"
-                    ? "border-[var(--color-brand-500)] text-white bg-[var(--color-surface-950)]/45"
-                    : "border-transparent text-[var(--color-surface-400)] hover:text-white"
-                }`}
-              >
-                Generated HTML
-              </button>
-              <button
-                onClick={() => setActiveTab("meta")}
-                className={`flex-1 py-3 text-xs font-bold border-b-2 transition-all duration-200 ${
-                  activeTab === "meta"
-                    ? "border-[var(--color-brand-500)] text-white bg-[var(--color-surface-950)]/45"
-                    : "border-transparent text-[var(--color-surface-400)] hover:text-white"
-                }`}
-              >
-                Metadata
-              </button>
+              <button onClick={() => setActiveTab("prompt")} className={tabCls(activeTab === "prompt")}>Prompt & Details</button>
+              <button onClick={() => setActiveTab("plan")} className={tabCls(activeTab === "plan")}>AI Planner Log</button>
+              <button onClick={() => setActiveTab("html")} className={tabCls(activeTab === "html")}>Generated HTML</button>
+              <button onClick={() => setActiveTab("meta")} className={tabCls(activeTab === "meta")}>Metadata</button>
             </div>
 
-            {/* Tab content area */}
             <div className="flex-1 overflow-y-auto p-5 text-xs min-h-0 leading-relaxed">
+              {/* Prompt Tab */}
               {activeTab === "prompt" && (
                 <div className="space-y-4">
                   <div>
@@ -393,129 +202,94 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                       {project.prompt}
                     </p>
                   </div>
-
                   {project.generatedMeta?.plan && (
                     <div>
                       <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)] mb-1">Visual Theme</h5>
                       <div className="grid grid-cols-2 gap-2 bg-[var(--color-surface-950)] p-3 rounded-md border border-[var(--color-border)]">
-                        <div>
-                          <span className="text-[var(--color-surface-450)]">Layout:</span>
-                          <span className="ml-1.5 font-bold text-white uppercase">{project.generatedMeta.plan.pageType}</span>
-                        </div>
-                        <div>
-                          <span className="text-[var(--color-surface-450)]">Style Mood:</span>
-                          <span className="ml-1.5 font-bold text-white uppercase">{project.generatedMeta.generatorMeta?.promptStyle || "standard"}</span>
-                        </div>
+                        <div><span className="text-[var(--color-surface-450)]">Layout:</span><span className="ml-1.5 font-bold text-white uppercase">{project.generatedMeta.plan.pageType}</span></div>
+                        <div><span className="text-[var(--color-surface-450)]">Style Mood:</span><span className="ml-1.5 font-bold text-white uppercase">{project.generatedMeta.generatorMeta?.promptStyle ?? "standard"}</span></div>
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
+              {/* Plan Tab */}
               {activeTab === "plan" && (
                 <div className="space-y-4">
                   {project.generatedMeta?.plan ? (
                     <>
                       <div>
-                        <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)] mb-1.5">Page Schema Layout Details</h5>
+                        <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)] mb-1.5">Page Schema Details</h5>
                         <div className="bg-[var(--color-surface-950)] p-3 rounded-md border border-[var(--color-border)] space-y-3">
-                          <div>
-                            <span className="text-[var(--color-surface-450)] font-semibold">Page Type:</span>
-                            <span className="ml-1.5 text-white font-bold uppercase">{project.generatedMeta.plan.pageType}</span>
-                          </div>
-                          <div>
-                            <span className="text-[var(--color-surface-450)] font-semibold">Theme:</span>
-                            <span className="ml-1.5 text-white font-bold uppercase">{project.generatedMeta.plan.theme}</span>
-                          </div>
-                          <div>
-                            <span className="text-[var(--color-surface-450)] font-semibold">Layout:</span>
-                            <span className="ml-1.5 text-white font-bold uppercase">{project.generatedMeta.plan.layout}</span>
-                          </div>
+                          <div><span className="text-[var(--color-surface-450)] font-semibold">Page Type:</span><span className="ml-1.5 text-white font-bold uppercase">{project.generatedMeta.plan.pageType}</span></div>
+                          <div><span className="text-[var(--color-surface-450)] font-semibold">Theme:</span><span className="ml-1.5 text-white font-bold uppercase">{project.generatedMeta.plan.theme}</span></div>
+                          <div><span className="text-[var(--color-surface-450)] font-semibold">Layout:</span><span className="ml-1.5 text-white font-bold uppercase">{project.generatedMeta.plan.layout}</span></div>
                           {project.generatedMeta.plan.description && (
-                            <div>
-                              <span className="text-[var(--color-surface-450)] font-semibold">Description:</span>
-                              <p className="mt-1 text-[var(--color-surface-300)]">{project.generatedMeta.plan.description}</p>
-                            </div>
+                            <div><span className="text-[var(--color-surface-450)] font-semibold">Description:</span><p className="mt-1 text-[var(--color-surface-300)]">{project.generatedMeta.plan.description}</p></div>
                           )}
                           {project.generatedMeta.plan.styleKeywords && (
                             <div>
                               <span className="text-[var(--color-surface-450)] font-semibold">Style Keywords:</span>
                               <div className="mt-1.5 flex flex-wrap gap-1">
-                                {project.generatedMeta.plan.styleKeywords.map((kw, idx) => (
-                                  <span key={idx} className="bg-[var(--color-surface-800)] px-2 py-0.5 rounded text-[10px] text-[var(--color-surface-200)]">
-                                    {kw}
-                                  </span>
+                                {project.generatedMeta.plan.styleKeywords.map((kw, i) => (
+                                  <span key={i} className="bg-[var(--color-surface-800)] px-2 py-0.5 rounded text-[10px] text-[var(--color-surface-200)]">{kw}</span>
                                 ))}
                               </div>
                             </div>
                           )}
                         </div>
                       </div>
-
                       <div>
                         <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)] mb-1.5">Required Page Sections</h5>
                         <div className="space-y-2">
-                          {project.generatedMeta.plan.sections.map((secName, idx) => (
-                            <div key={idx} className="bg-[var(--color-surface-950)]/50 p-2.5 rounded border border-[var(--color-border)] flex items-center justify-between">
-                              <span className="font-extrabold text-white text-[11px] uppercase tracking-wider">{secName}</span>
-                              <span className="text-[9px] text-[var(--color-surface-500)] font-mono">Section #{idx + 1}</span>
+                          {project.generatedMeta.plan.sections.map((sec, i) => (
+                            <div key={i} className="bg-[var(--color-surface-950)]/50 p-2.5 rounded border border-[var(--color-border)] flex items-center justify-between">
+                              <span className="font-extrabold text-white text-[11px] uppercase tracking-wider">{sec}</span>
+                              <span className="text-[9px] text-[var(--color-surface-500)] font-mono">Section #{i + 1}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     </>
                   ) : (
-                    <div className="text-center py-8 text-[var(--color-muted-fg)]">
-                      No AI plan logs recorded for this generation.
-                    </div>
+                    <div className="text-center py-8 text-[var(--color-muted-fg)]">No AI plan logs recorded for this generation.</div>
                   )}
                 </div>
               )}
 
+              {/* HTML Tab */}
               {activeTab === "html" && (
                 <div className="space-y-3 h-full flex flex-col min-h-0">
                   <div className="flex items-center justify-between shrink-0">
                     <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Clean Source Code</span>
                     <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 py-0.5 border-[var(--color-border)] text-white hover:text-white" onClick={handleCopyCode}>
-                      {copied ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-400 mr-1" />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Code className="w-3 h-3 mr-1" />
-                          Copy Code
-                        </>
-                      )}
+                      {copied ? <><Check className="w-3 h-3 text-emerald-400 mr-1" />Copied</> : <><Code className="w-3 h-3 mr-1" />Copy Code</>}
                     </Button>
                   </div>
                   <pre className="flex-1 overflow-auto bg-[var(--color-surface-950)] p-3.5 rounded-md border border-[var(--color-border)] font-mono text-[10px] text-[var(--color-brand-200)] max-h-[380px] scrollbar-thin">
-                    {project.generatedHtml || "<!-- No HTML Content Generated -->"}
+                    {project.generatedHtml ?? "<!-- No HTML Content Generated -->"}
                   </pre>
                 </div>
               )}
 
+              {/* Metadata Tab */}
               {activeTab === "meta" && (
                 <div className="space-y-4">
-                  {/* Validation Report */}
                   <div>
                     <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)] mb-1.5">Compliance & Validation Report</h5>
                     <div className="bg-[var(--color-surface-950)] p-3 rounded-md border border-[var(--color-border)] space-y-2">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[var(--color-surface-450)] font-semibold">Validator Compliance:</span>
-                        {project.generatedMeta?.validation?.valid ? (
-                          <span className="text-emerald-400 font-bold uppercase">Passed</span>
-                        ) : (
-                          <span className="text-amber-400 font-bold uppercase">Warning/Repaired</span>
-                        )}
+                        {project.generatedMeta?.validation?.valid
+                          ? <span className="text-emerald-400 font-bold uppercase">Passed</span>
+                          : <span className="text-amber-400 font-bold uppercase">Warning/Repaired</span>}
                       </div>
-
-                      {project.generatedMeta?.validation?.issues && project.generatedMeta.validation.issues.length > 0 && (
+                      {(project.generatedMeta?.validation?.issues?.length ?? 0) > 0 && (
                         <div className="mt-2 space-y-1">
                           <p className="text-[10px] font-bold text-[var(--color-surface-400)]">Validation Warnings:</p>
-                          {project.generatedMeta.validation.issues.map((issue, idx) => (
-                            <div key={idx} className="flex gap-1.5 text-[10px] text-[var(--color-muted-fg)] bg-black/20 p-1.5 rounded">
+                          {project.generatedMeta!.validation!.issues!.map((issue, i) => (
+                            <div key={i} className="flex gap-1.5 text-[10px] text-[var(--color-muted-fg)] bg-black/20 p-1.5 rounded">
                               <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
                               <span>{issue}</span>
                             </div>
@@ -524,24 +298,13 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                       )}
                     </div>
                   </div>
-
-                  {/* AI Generation Metrics */}
                   {project.generatedMeta?.generatorMeta && (
                     <div>
                       <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)] mb-1.5">Telemetry & Latency Logs</h5>
                       <div className="grid grid-cols-2 gap-3 bg-[var(--color-surface-950)] p-3 rounded-md border border-[var(--color-border)] font-mono text-[10px]">
-                        <div>
-                          <span className="text-[var(--color-surface-450)]">Duration:</span>
-                          <span className="ml-1 text-white">{(project.generatedMeta.generatorMeta.durationMs / 1000).toFixed(2)}s</span>
-                        </div>
-                        <div>
-                          <span className="text-[var(--color-surface-450)]">Markup Length:</span>
-                          <span className="ml-1 text-white">{project.generatedMeta.generatorMeta.outputLength} chars</span>
-                        </div>
-                        <div className="col-span-2">
-                          <span className="text-[var(--color-surface-450)]">Executed:</span>
-                          <span className="ml-1 text-white">{new Date(project.generatedMeta.generatorMeta.generatedAt).toLocaleString()}</span>
-                        </div>
+                        <div><span className="text-[var(--color-surface-450)]">Duration:</span><span className="ml-1 text-white">{(project.generatedMeta.generatorMeta.durationMs / 1000).toFixed(2)}s</span></div>
+                        <div><span className="text-[var(--color-surface-450)]">Markup Length:</span><span className="ml-1 text-white">{project.generatedMeta.generatorMeta.outputLength} chars</span></div>
+                        <div className="col-span-2"><span className="text-[var(--color-surface-450)]">Executed:</span><span className="ml-1 text-white">{new Date(project.generatedMeta.generatorMeta.generatedAt).toLocaleString()}</span></div>
                       </div>
                     </div>
                   )}
@@ -551,9 +314,8 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
           </Card>
         </div>
 
-        {/* Right Column: Live Sandbox Iframe & Export/Deploy controls */}
+        {/* Right: Live Preview + Deploy/Export */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-          {/* Iframe View */}
           <Card className="flex-1 flex flex-col border-[var(--color-border)] bg-[var(--color-surface-900)] overflow-hidden h-[400px]">
             <CardHeader className="py-2.5 px-4 bg-black/15 flex flex-row items-center justify-between border-b border-[var(--color-border)] shrink-0">
               <CardTitle className="text-xs font-extrabold text-white flex items-center gap-1.5">
@@ -561,48 +323,30 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                 Live Interactive Sandbox
               </CardTitle>
               {project.deployedUrl && (
-                <a
-                  href={project.deployedUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[10px] text-[var(--color-brand-400)] hover:underline flex items-center gap-0.5 font-bold"
-                >
-                  Open Sandbox link
-                  <ExternalLink className="w-2.5 h-2.5" />
+                <a href={project.deployedUrl} target="_blank" rel="noreferrer" className="text-[10px] text-[var(--color-brand-400)] hover:underline flex items-center gap-0.5 font-bold">
+                  Open Sandbox link <ExternalLink className="w-2.5 h-2.5" />
                 </a>
               )}
             </CardHeader>
-
             <div className="flex-1 bg-white">
               {project.generatedHtml ? (
-                <iframe
-                  title="Website Preview"
-                  className="w-full h-full border-0"
-                  srcDoc={project.generatedHtml}
-                  sandbox="allow-scripts"
-                />
+                <iframe title="Website Preview" className="w-full h-full border-0" srcDoc={project.generatedHtml} sandbox="allow-scripts" />
               ) : (
-                <div className="h-full flex items-center justify-center bg-[var(--color-surface-950)] text-[var(--color-muted-fg)] text-xs">
-                  No HTML generated.
-                </div>
+                <div className="h-full flex items-center justify-center bg-[var(--color-surface-950)] text-[var(--color-muted-fg)] text-xs">No HTML generated.</div>
               )}
             </div>
           </Card>
 
-          {/* Export & Deploy Panel */}
+          {/* Deploy + Export */}
           <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-5 shrink-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Deploy controls */}
               <div className="space-y-2.5 border-r border-[var(--color-border)]/50 pr-4">
                 <h4 className="text-xs font-extrabold text-white">Deploy Site</h4>
-                <p className="text-[10px] text-[var(--color-muted-fg)]">
-                  Publish your generated website to FastApp edge servers.
-                </p>
-
+                <p className="text-[10px] text-[var(--color-muted-fg)]">Publish your generated website to FastApp edge servers.</p>
                 {isDeploying ? (
                   <div className="space-y-1.5 p-2.5 rounded bg-[var(--color-surface-950)] border border-[var(--color-border)] max-h-[100px] overflow-y-auto">
-                    {deploySteps.map((step, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-[9px] font-mono text-[var(--color-surface-200)]">
+                    {deploySteps.map((step, i) => (
+                      <div key={i} className="flex items-center justify-between text-[9px] font-mono text-[var(--color-surface-200)]">
                         <span className="flex items-center gap-1.5">
                           {step.status === "running" && <Loader2 className="w-2.5 h-2.5 animate-spin text-[var(--color-brand-500)]" />}
                           {step.status === "completed" && <span className="text-emerald-400 font-bold">✓</span>}
@@ -612,45 +356,22 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                     ))}
                   </div>
                 ) : (
-                  <Button
-                    onClick={handleDeploy}
-                    className="w-full h-8 text-xs font-bold"
-                    disabled={isDeploying}
-                  >
-                    <Play className="w-3.5 h-3.5 mr-1" />
-                    Publish to Production
+                  <Button onClick={deploy} className="w-full h-8 text-xs font-bold" disabled={isDeploying}>
+                    <Play className="w-3.5 h-3.5 mr-1" />Publish to Production
                   </Button>
                 )}
-
-                {deployError && (
-                  <p className="text-[9px] text-rose-400 font-medium">{deployError}</p>
-                )}
+                {deployError && <p className="text-[9px] text-rose-400 font-medium">{deployError}</p>}
               </div>
 
-              {/* Export controls */}
               <div className="space-y-2.5 pl-2">
                 <h4 className="text-xs font-extrabold text-white">Export Code</h4>
-                <p className="text-[10px] text-[var(--color-muted-fg)]">
-                  Download the generated source code for editing.
-                </p>
-
+                <p className="text-[10px] text-[var(--color-muted-fg)]">Download the generated source code for editing.</p>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-8 text-xs border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white"
-                    onClick={() => triggerExport("html")}
-                  >
-                    <Download className="w-3.5 h-3.5 mr-1" />
-                    HTML
+                  <Button variant="outline" className="flex-1 h-8 text-xs border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white" onClick={() => window.open(`/api/projects/${project.id}/export?format=html`)}>
+                    <Download className="w-3.5 h-3.5 mr-1" />HTML
                   </Button>
-
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-8 text-xs border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white"
-                    onClick={() => triggerExport("zip")}
-                  >
-                    <Download className="w-3.5 h-3.5 mr-1" />
-                    ZIP
+                  <Button variant="outline" className="flex-1 h-8 text-xs border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white" onClick={() => window.open(`/api/projects/${project.id}/export?format=zip`)}>
+                    <Download className="w-3.5 h-3.5 mr-1" />ZIP
                   </Button>
                 </div>
               </div>
