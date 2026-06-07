@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Download, Globe, Cpu, Calendar, Sparkles, Code,
   BookOpen, Settings, Play, Copy, Check, Trash2, Edit, Loader2,
-  AlertTriangle, RefreshCw, ExternalLink,
+  AlertTriangle, RefreshCw, ExternalLink, History, GitBranch, Activity,
+  ArrowUpRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -20,11 +21,25 @@ interface ProjectDetailClientProps {
 export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps) {
   const router = useRouter();
   const [project, setProject] = useState<Project>(initialProject);
-  const [activeTab, setActiveTab] = useState<"prompt" | "plan" | "html" | "meta" | "deployments">("prompt");
+  const [activeTab, setActiveTab] = useState<"prompt" | "plan" | "html" | "meta" | "deployments" | "edit" | "history" | "timeline">("prompt");
   const [copied, setCopied] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(project.name);
   const [isLoading, setIsLoading] = useState(false);
+
+  // AI Edit States
+  const [editPrompt, setEditPrompt] = useState("");
+  const [isIterating, setIsIterating] = useState(false);
+  const [iterationStep, setIterationStep] = useState("");
+  const [iterationProgress, setIterationProgress] = useState<string[]>([]);
+
+  // History / Revision States
+  const [revisions, setRevisions] = useState<any[]>([]);
+  const [loadingRevisions, setLoadingRevisions] = useState(false);
+
+  // Timeline States
+  const [timeline, setTimeline] = useState<any[]>([]);
+  const [loadingTimeline, setLoadingTimeline] = useState(false);
 
   const { isDeploying, deploySteps, deployError, deploy } = useDeployStream({
     projectId: project.id,
@@ -94,6 +109,161 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
     }
   };
 
+  const fetchRevisions = async () => {
+    setLoadingRevisions(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}/revisions`);
+      const data = await res.json();
+      if (data.success) {
+        setRevisions(data.revisions);
+      }
+    } catch (err) {
+      console.error("Failed to load revisions:", err);
+    } finally {
+      setLoadingRevisions(false);
+    }
+  };
+
+  const fetchTimeline = async () => {
+    setLoadingTimeline(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}/timeline`);
+      const data = await res.json();
+      if (data.success) {
+        setTimeline(data.timeline);
+      }
+    } catch (err) {
+      console.error("Failed to load timeline events:", err);
+    } finally {
+      setLoadingTimeline(false);
+    }
+  };
+
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    if (tab === "history") {
+      fetchRevisions();
+    } else if (tab === "timeline") {
+      fetchTimeline();
+    }
+  };
+
+  const handleRestoreRevision = async (revisionId: string) => {
+    if (!confirm("Are you sure you want to restore the project to this revision? The current state will be saved as a new version.")) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}/revisions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ revisionId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Fetch updated project state
+        const pRes = await fetch(`/api/projects/${project.id}`);
+        const pData = await pRes.json();
+        if (pData.success && pData.project) {
+          setProject(pData.project);
+          setActiveTab("html");
+          alert("Project successfully restored to selected revision!");
+        }
+      } else {
+        alert(data.error?.message || "Failed to restore revision");
+      }
+    } catch (err) {
+      console.error("Restore failed:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditWithAI = async () => {
+    if (!editPrompt.trim()) return;
+    setIsIterating(true);
+    setIterationStep("planning");
+    setIterationProgress(["Initiating website edit pipeline...", "Injected FastApp Design tokens..."]);
+
+    try {
+      const response = await fetch(`/api/projects/${project.id}/edit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: editPrompt.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to start AI editor");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No response stream reader available");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line.startsWith("event: ")) {
+            const eventName = line.replace("event: ", "").trim();
+            // Look ahead for the next data line
+            let nextIndex = i + 1;
+            while (nextIndex < lines.length && !lines[nextIndex].startsWith("data: ")) {
+              nextIndex++;
+            }
+            if (nextIndex < lines.length) {
+              const dataLine = lines[nextIndex];
+              const rawData = dataLine.replace("data: ", "").trim();
+              try {
+                const data = JSON.parse(rawData);
+                if (eventName === "planning") {
+                  setIterationStep("planning");
+                  setIterationProgress((prev) => [...prev, `[Plan Update] ${data.message}`]);
+                } else if (eventName === "generating") {
+                  setIterationStep("generating");
+                  setIterationProgress((prev) => [...prev, "[Generator] Code modification started..."]);
+                } else if (eventName === "validating") {
+                  setIterationStep("validating");
+                  setIterationProgress((prev) => [...prev, `[Validator] Checking styling rules: ${data.message || "Running Quality Evaluation"}`]);
+                } else if (eventName === "saving") {
+                  setIterationStep("saving");
+                  setIterationProgress((prev) => [...prev, "[Saver] Committing revision and timeline logs..."]);
+                } else if (eventName === "complete") {
+                  setIterationStep("complete");
+                  setIterationProgress((prev) => [...prev, "✓ Website updated successfully!"]);
+                  setEditPrompt("");
+                  
+                  // Fetch updated project
+                  const pRes = await fetch(`/api/projects/${project.id}`);
+                  const pData = await pRes.json();
+                  if (pData.success && pData.project) {
+                    setProject(pData.project);
+                  }
+                } else if (eventName === "error") {
+                  setIterationStep("error");
+                  setIterationProgress((prev) => [...prev, `❌ Error: ${data.message}`]);
+                }
+              } catch (e) {
+                // Ignore chunk parsing errors
+              }
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      setIterationStep("error");
+      setIterationProgress((prev) => [...prev, `❌ Error: ${err.message || String(err)}`]);
+    } finally {
+      setIsIterating(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "deployed": return "text-emerald-400 border-emerald-500/20 bg-emerald-500/10";
@@ -106,11 +276,47 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
   };
 
   const tabCls = (active: boolean) =>
-    `flex-1 py-3 text-xs font-bold border-b-2 transition-all duration-200 ${
+    `flex-1 py-3 px-4 text-xs font-bold border-b-2 transition-all duration-200 whitespace-nowrap ${
       active
         ? "border-[var(--color-brand-500)] text-white bg-[var(--color-surface-950)]/45"
         : "border-transparent text-[var(--color-surface-400)] hover:text-white"
     }`;
+
+  const renderPlanDiff = (diff: any) => {
+    if (!diff) return null;
+    const items: string[] = [];
+    if (diff.pageType) {
+      items.push(`Changed layout to '${diff.pageType.to}'`);
+    }
+    if (diff.theme) {
+      items.push(`Theme: ${diff.theme.from} → ${diff.theme.to}`);
+    }
+    if (diff.sections?.added?.length > 0) {
+      items.push(`+ Added: ${diff.sections.added.join(", ")}`);
+    }
+    if (diff.sections?.removed?.length > 0) {
+      items.push(`- Removed: ${diff.sections.removed.join(", ")}`);
+    }
+    if (diff.components?.added?.length > 0) {
+      items.push(`+ Component: ${diff.components.added.join(", ")}`);
+    }
+    if (diff.designTokens?.length > 0) {
+      const tokens = diff.designTokens.map((t: any) => `${t.key} (${t.to})`).join(", ");
+      items.push(`🎨 Styles: ${tokens}`);
+    }
+
+    if (items.length === 0) {
+      return <span className="text-[10px] text-[var(--color-surface-500)] italic">No core plan modifications</span>;
+    }
+
+    return (
+      <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-[var(--color-surface-300)] font-mono leading-tight">
+        {items.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -188,19 +394,207 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
       </Card>
 
       {/* Details + Preview Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[550px]">
         {/* Left: Tabbed Details */}
         <div className="lg:col-span-5 flex flex-col gap-6">
           <Card className="flex-1 flex flex-col border-[var(--color-border)] bg-[var(--color-surface-900)] min-h-0 overflow-hidden">
             <div className="flex border-b border-[var(--color-border)] bg-black/10 shrink-0 overflow-x-auto scrollbar-none">
-              <button onClick={() => setActiveTab("prompt")} className={tabCls(activeTab === "prompt")}>Prompt</button>
-              <button onClick={() => setActiveTab("plan")} className={tabCls(activeTab === "plan")}>Planner Log</button>
-              <button onClick={() => setActiveTab("html")} className={tabCls(activeTab === "html")}>HTML</button>
-              <button onClick={() => setActiveTab("meta")} className={tabCls(activeTab === "meta")}>Metadata</button>
-              <button onClick={() => setActiveTab("deployments")} className={tabCls(activeTab === "deployments")}>Deploy History</button>
+              <button onClick={() => handleTabChange("edit")} className={tabCls(activeTab === "edit")}>✨ Edit with AI</button>
+              <button onClick={() => handleTabChange("history")} className={tabCls(activeTab === "history")}>🕒 Version History</button>
+              <button onClick={() => handleTabChange("timeline")} className={tabCls(activeTab === "timeline")}>📈 Timeline</button>
+              <button onClick={() => handleTabChange("prompt")} className={tabCls(activeTab === "prompt")}>Prompt</button>
+              <button onClick={() => handleTabChange("plan")} className={tabCls(activeTab === "plan")}>Planner Log</button>
+              <button onClick={() => handleTabChange("html")} className={tabCls(activeTab === "html")}>HTML</button>
+              <button onClick={() => handleTabChange("meta")} className={tabCls(activeTab === "meta")}>Metadata</button>
+              <button onClick={() => handleTabChange("deployments")} className={tabCls(activeTab === "deployments")}>Deploy History</button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 text-xs min-h-0 leading-relaxed">
+              {/* Edit Tab */}
+              {activeTab === "edit" && (
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[var(--color-brand-400)]" />
+                      Instruct AI Editor
+                    </h4>
+                    <p className="text-[11px] text-[var(--color-surface-400)] leading-relaxed">
+                      Describe the modifications you'd like to make. The AI will refine the underlying layout plan, audit visual guidelines, and update the website.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <textarea
+                      placeholder="e.g. 'Add a three-column pricing section with a bold theme', 'Change primary brand color to sky blue', 'Add a simple footer with contact links'"
+                      className="w-full h-28 bg-[var(--color-surface-950)] border border-[var(--color-border)] rounded-md px-3.5 py-2.5 text-xs text-white placeholder-[var(--color-surface-500)] focus:outline-none focus:border-[var(--color-brand-500)] resize-none"
+                      value={editPrompt}
+                      onChange={(e) => setEditPrompt(e.target.value)}
+                      disabled={isIterating || isLoading}
+                    />
+                    <Button
+                      onClick={handleEditWithAI}
+                      className="w-full h-9 text-xs font-bold gap-1.5"
+                      disabled={isIterating || isLoading || !editPrompt.trim()}
+                    >
+                      {isIterating ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Modifying Website...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          Apply Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Progressive Output Stream Log */}
+                  {iterationProgress.length > 0 && (
+                    <div className="mt-4 space-y-2 border-t border-[var(--color-border)] pt-4">
+                      <h5 className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--color-surface-450)]">AI Action Stream</h5>
+                      <div className="bg-[var(--color-surface-950)] border border-[var(--color-border)] p-3 rounded-md font-mono text-[10px] text-[var(--color-brand-200)] max-h-48 overflow-y-auto space-y-1.5 scrollbar-thin">
+                        {iterationProgress.map((prog, idx) => (
+                          <div key={idx} className="leading-normal">{prog}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Version History Tab */}
+              {activeTab === "history" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Project Revisions</h5>
+                    <Button variant="outline" size="sm" className="h-6 text-[9px] border-[var(--color-border)] text-white hover:text-white" onClick={fetchRevisions} disabled={loadingRevisions}>
+                      <RefreshCw className="w-2.5 h-2.5 mr-1" />Reload
+                    </Button>
+                  </div>
+
+                  {loadingRevisions ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-5 h-5 animate-spin text-[var(--color-brand-500)]" />
+                    </div>
+                  ) : revisions.length > 0 ? (
+                    <div className="space-y-3">
+                      {revisions.map((rev) => (
+                        <div key={rev.id} className="bg-[var(--color-surface-950)]/50 p-3 rounded-lg border border-[var(--color-border)] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-white text-[11px] flex items-center gap-1.5">
+                              <GitBranch className="w-3.5 h-3.5 text-[var(--color-brand-500)]" />
+                              Revision #{rev.revisionNumber}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 text-[9px] border-[var(--color-border)] text-white hover:text-white bg-[var(--color-surface-900)] px-2.5 py-0.5"
+                              onClick={() => handleRestoreRevision(rev.id)}
+                              disabled={isLoading}
+                            >
+                              Restore version
+                            </Button>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-semibold text-[var(--color-surface-400)]">Prompt:</span>
+                            <p className="text-[10px] text-[var(--color-surface-200)] mt-0.5 bg-[var(--color-surface-950)] p-2 rounded border border-[var(--color-border)]/50 font-mono italic">
+                              "{rev.prompt}"
+                            </p>
+                          </div>
+                          {rev.meta?.planDiff && (
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-semibold text-[var(--color-surface-400)]">Layout Diff:</span>
+                              {renderPlanDiff(rev.meta.planDiff)}
+                            </div>
+                          )}
+                          <div className="text-[9px] text-[var(--color-surface-550)] font-mono flex justify-between">
+                            <span>Engine: {rev.meta?.generatorMeta?.model || "gemini-2.5-flash"}</span>
+                            <span>{new Date(rev.createdAt).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-[var(--color-muted-fg)] border border-dashed border-[var(--color-border)] rounded-lg">
+                      No versions recorded yet. Initial revision will be logged automatically on the first edit.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Timeline Tab */}
+              {activeTab === "timeline" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Lifecycle Timeline</h5>
+                    <Button variant="outline" size="sm" className="h-6 text-[9px] border-[var(--color-border)] text-white hover:text-white" onClick={fetchTimeline} disabled={loadingTimeline}>
+                      <RefreshCw className="w-2.5 h-2.5 mr-1" />Reload
+                    </Button>
+                  </div>
+
+                  {loadingTimeline ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-5 h-5 animate-spin text-[var(--color-brand-500)]" />
+                    </div>
+                  ) : timeline.length > 0 ? (
+                    <div className="relative border-l border-[var(--color-border)] pl-4 ml-2.5 space-y-5 py-2">
+                      {timeline.map((event) => {
+                        let badgeColor = "bg-[var(--color-surface-700)]";
+                        let title = event.eventType;
+                        let desc = "";
+
+                        if (event.eventType === "created") {
+                          badgeColor = "bg-emerald-500";
+                          title = "Project Created";
+                          desc = `Baseline config initialized for ${event.eventMetadata?.name || "website"}`;
+                        } else if (event.eventType === "generated") {
+                          badgeColor = "bg-sky-500";
+                          title = "Website Generated";
+                          desc = `First version successfully compiled using ${event.eventMetadata?.model || "AI engine"}`;
+                        } else if (event.eventType === "edited") {
+                          badgeColor = "bg-amber-500";
+                          title = `Revision #${event.eventMetadata?.revisionNumber || ""} Applied`;
+                          desc = event.eventMetadata?.prompt ? `"${event.eventMetadata.prompt}"` : "Applied conversational changes";
+                        } else if (event.eventType === "published") {
+                          badgeColor = "bg-teal-500";
+                          title = "Site Published";
+                          desc = `Production release deployed to edge servers`;
+                        } else if (event.eventType === "exported") {
+                          badgeColor = "bg-indigo-500";
+                          title = `Source Exported`;
+                          desc = `Downloaded project bundle in ${event.eventMetadata?.format?.toUpperCase() || "HTML"} format`;
+                        }
+
+                        return (
+                          <div key={event.id} className="relative">
+                            <span className={`absolute -left-[22.5px] top-1 w-2.5 h-2.5 rounded-full ${badgeColor} border-2 border-[var(--color-surface-900)] ring-4 ring-transparent`} />
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-extrabold text-white text-[11px]">{title}</span>
+                                <span className="text-[9px] text-[var(--color-surface-550)] font-mono">{new Date(event.createdAt).toLocaleTimeString()}</span>
+                              </div>
+                              <p className="text-[10px] text-[var(--color-surface-300)] leading-normal">{desc}</p>
+                              {event.eventMetadata?.url && (
+                                <a href={event.eventMetadata.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[9px] text-[var(--color-brand-400)] hover:underline mt-0.5">
+                                  Go to live site <ArrowUpRight className="w-2 h-2" />
+                                </a>
+                              )}
+                              <span className="block text-[8px] text-[var(--color-surface-550)] font-mono">{new Date(event.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-[var(--color-muted-fg)] border border-dashed border-[var(--color-border)] rounded-lg">
+                      No lifecycle events logged for this project.
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Prompt Tab */}
               {activeTab === "prompt" && (
                 <div className="space-y-4">
@@ -377,7 +771,7 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
 
         {/* Right: Live Preview + Deploy/Export */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-          <Card className="flex-1 flex flex-col border-[var(--color-border)] bg-[var(--color-surface-900)] overflow-hidden h-[400px]">
+          <Card className="flex-1 flex flex-col border-[var(--color-border)] bg-[var(--color-surface-900)] overflow-hidden h-[450px]">
             <CardHeader className="py-2.5 px-4 bg-black/15 flex flex-row items-center justify-between border-b border-[var(--color-border)] shrink-0">
               <CardTitle className="text-xs font-extrabold text-white flex items-center gap-1.5">
                 <Globe className="w-3.5 h-3.5 text-[var(--color-brand-400)]" />

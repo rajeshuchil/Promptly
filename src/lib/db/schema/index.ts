@@ -6,14 +6,14 @@
  */
 
 export { users, type User, type NewUser } from "./users";
-export { projects, type Project, type NewProject } from "./projects";
+export { projects, type Project, type NewProject, projectRevisions, type ProjectRevision, type NewProjectRevision, projectTimelineEvents, type ProjectTimelineEvent, type NewProjectTimelineEvent } from "./projects";
 export { usageLogs, type UsageLog, type NewUsageLog } from "./usage";
 export { subscriptions, type Subscription, type NewSubscription } from "./billing";
 
 // ─── Relations ────────────────────────────────────────────────────────────────
 import { relations } from "drizzle-orm";
 import { users } from "./users";
-import { projects } from "./projects";
+import { projects, projectRevisions, projectTimelineEvents } from "./projects";
 import { usageLogs } from "./usage";
 import { subscriptions } from "./billing";
 
@@ -29,6 +29,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 export const projectsRelations = relations(projects, ({ one, many }) => ({
   user: one(users, { fields: [projects.userId], references: [users.id] }),
   usageLogs: many(usageLogs),
+  revisions: many(projectRevisions),
+  timelineEvents: many(projectTimelineEvents),
 }));
 
 export const usageLogsRelations = relations(usageLogs, ({ one }) => ({
@@ -38,4 +40,14 @@ export const usageLogsRelations = relations(usageLogs, ({ one }) => ({
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   user: one(users, { fields: [subscriptions.userId], references: [users.id] }),
+}));
+
+export const projectRevisionsRelations = relations(projectRevisions, ({ one }) => ({
+  project: one(projects, { fields: [projectRevisions.projectId], references: [projects.id] }),
+  user: one(users, { fields: [projectRevisions.userId], references: [users.id] }),
+}));
+
+export const projectTimelineEventsRelations = relations(projectTimelineEvents, ({ one }) => ({
+  project: one(projects, { fields: [projectTimelineEvents.projectId], references: [projects.id] }),
+  user: one(users, { fields: [projectTimelineEvents.userId], references: [users.id] }),
 }));

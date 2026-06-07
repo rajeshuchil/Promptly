@@ -7,6 +7,7 @@ import { AIError } from "@/lib/ai/types";
 import { getCurrentUser } from "@/lib/auth";
 import { UsageService } from "@/lib/usage";
 import { EntitlementsService } from "@/lib/billing";
+import { HistoryService } from "@/lib/iterations/history-service";
 
 export const runtime = "nodejs";
 
@@ -240,6 +241,31 @@ export async function POST(request: Request) {
           deploymentState: "generated",
           aiModel: "gemini-2.5-flash",
         });
+
+        // Record timeline events
+        try {
+          const historyService = HistoryService.getInstance();
+          await historyService.recordTimelineEvent({
+            projectId: project.id,
+            userId: user.id,
+            eventType: "created",
+            eventMetadata: {
+              name: projectName,
+              prompt,
+            },
+          });
+          await historyService.recordTimelineEvent({
+            projectId: project.id,
+            userId: user.id,
+            eventType: "generated",
+            eventMetadata: {
+              model: "gemini-2.5-flash",
+              validation: generatedMeta.validation,
+            },
+          });
+        } catch (timelineErr) {
+          console.error("Failed to record timeline events:", timelineErr);
+        }
 
         // Record successful validation and storage linked to projectId
         await usageService.recordUsage({

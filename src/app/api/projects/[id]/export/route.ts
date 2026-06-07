@@ -42,6 +42,22 @@ export async function GET(request: Request, { params }: RouteContext) {
     const exportService = ExportService.getInstance();
     const result = await exportService.exportProject(id, user.id, format);
 
+    // Record exported timeline event
+    try {
+      const { HistoryService } = await import("@/lib/iterations/history-service");
+      await HistoryService.getInstance().recordTimelineEvent({
+        projectId: id,
+        userId: user.id,
+        eventType: "exported",
+        eventMetadata: {
+          format,
+          filename: result.filename,
+        },
+      });
+    } catch (timelineErr) {
+      console.error("Failed to record exported timeline event:", timelineErr);
+    }
+
     // Construct headers for file download
     const headers = new Headers();
     headers.set("Content-Type", result.contentType);

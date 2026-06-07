@@ -140,6 +140,22 @@ export class DeploymentService {
           record.status = "deployed";
           record.url = chunk.result.url;
           record.metadata = chunk.result.metadata;
+
+          // Record published timeline event
+          try {
+            const { HistoryService } = await import("../iterations/history-service");
+            await HistoryService.getInstance().recordTimelineEvent({
+              projectId,
+              userId,
+              eventType: "published",
+              eventMetadata: {
+                provider: providerName,
+                url: chunk.result.url,
+              },
+            });
+          } catch (timelineErr) {
+            console.error("Failed to record published timeline event:", timelineErr);
+          }
         } else {
           nextStatus = "failed";
           record.status = "failed";

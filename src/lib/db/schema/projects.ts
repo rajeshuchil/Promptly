@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, index, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, boolean, index, jsonb, integer } from "drizzle-orm/pg-core";
 import type { GeneratedProjectMeta, DeploymentState } from "@/lib/projects/types";
 import { users } from "./users";
 
@@ -36,3 +36,45 @@ export const projects = pgTable(
 
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
+
+export const projectRevisions = pgTable(
+  "project_revisions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    revisionNumber: integer("revision_number").notNull(),
+    prompt: text("prompt").notNull(),
+    plan: jsonb("plan").notNull(),
+    html: text("html").notNull(),
+    css: text("css"),
+    meta: jsonb("meta"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("revisions_project_id_idx").on(table.projectId),
+    index("revisions_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export type ProjectRevision = typeof projectRevisions.$inferSelect;
+export type NewProjectRevision = typeof projectRevisions.$inferInsert;
+
+export const projectTimelineEvents = pgTable(
+  "project_timeline_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(), // 'created' | 'generated' | 'edited' | 'published' | 'exported'
+    eventMetadata: jsonb("event_metadata"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("timeline_project_id_idx").on(table.projectId),
+    index("timeline_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export type ProjectTimelineEvent = typeof projectTimelineEvents.$inferSelect;
+export type NewProjectTimelineEvent = typeof projectTimelineEvents.$inferInsert;
