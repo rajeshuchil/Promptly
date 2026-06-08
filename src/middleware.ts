@@ -8,7 +8,8 @@ export default auth((req) => {
 
   if (isLoginPage) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
+      // Authenticated users skip login → go straight to Build workspace
+      return NextResponse.redirect(new URL("/build", req.nextUrl));
     }
     return NextResponse.next();
   }
@@ -27,9 +28,11 @@ export default auth((req) => {
 export const config = {
   matcher: [
     "/",
+    "/build/:path*",
     "/dashboard/:path*",
     "/projects/:path*",
     "/generate/:path*",
+    "/templates/:path*",
     "/settings/:path*",
     "/help/:path*",
     "/login",

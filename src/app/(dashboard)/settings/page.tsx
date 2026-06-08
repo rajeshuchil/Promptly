@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import {
   Settings, User, Bell, Shield, CreditCard, Palette,
@@ -70,73 +69,70 @@ export default async function SettingsPage() {
   const user = await requireUser();
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-          <Settings className="w-6 h-6 text-[var(--color-brand-400)]" />
-          Settings
-        </h1>
-        <p className="text-sm text-[var(--color-muted-fg)] mt-1">
-          Manage your account, preferences, and integrations.
-        </p>
-      </div>
+    <div className="min-h-full overflow-y-auto">
+      <div className="max-w-3xl mx-auto px-6 py-10 space-y-6 animate-fade-in">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <Settings className="w-5 h-5 text-[#6ee7b7]" />
+            Settings
+          </h1>
+          <p className="text-xs text-neutral-400 mt-1">
+            Manage your account, preferences, and integrations.
+          </p>
+        </div>
 
-      {/* Account info card */}
-      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-900)] p-5">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg text-white"
-            style={{ background: "linear-gradient(135deg, oklch(0.60 0.27 270), oklch(0.53 0.28 310))" }}>
-            {user.name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "U"}
-          </div>
-          <div>
-            <div className="font-bold text-white">{user.name ?? "FastApp User"}</div>
-            <div className="text-sm text-[var(--color-muted-fg)]">{user.email}</div>
-          </div>
-          <div className="ml-auto px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider"
-            style={{ color: "oklch(0.79 0.16 270)", borderColor: "oklch(0.60 0.27 270 / 0.35)", background: "oklch(0.60 0.27 270 / 0.10)" }}>
-            Free Plan
+        {/* Account info card */}
+        <div className="rounded border border-white/10 bg-[#111111] p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-[#6ee7b7] text-[#161616] uppercase shrink-0">
+              {user.name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "U"}
+            </div>
+            <div>
+              <div className="font-semibold text-white text-sm">{user.name ?? "FastApp User"}</div>
+              <div className="text-xs text-neutral-400">{user.email}</div>
+            </div>
+            <div className="ml-auto px-2.5 py-0.5 rounded border border-white/10 bg-white/5 text-[9px] font-bold text-white uppercase tracking-wider">
+              Free Plan
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Settings sections */}
-      <div className="space-y-2">
-        {settingSections.map((section) => (
-          <div key={section.id}>
-            {section.href ? (
-              <a
-                href={section.href}
-                className="flex items-center gap-4 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-900)] hover:bg-[var(--color-surface-800)] hover:border-[var(--color-brand-700)] transition-all group"
-              >
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: "oklch(0.60 0.27 270 / 0.12)", border: "1px solid oklch(0.60 0.27 270 / 0.25)" }}>
-                  <section.icon className="w-4.5 h-4.5 text-[var(--color-brand-400)]" />
+        {/* Settings sections */}
+        <div className="space-y-2">
+          {settingSections.map((section) => (
+            <div key={section.id}>
+              {section.href ? (
+                <a
+                  href={section.href}
+                  className="flex items-center gap-4 p-4 rounded border border-white/10 bg-[#111111] hover:bg-[#161616] hover:border-white/20 transition-all group"
+                >
+                  <div className="w-9 h-9 rounded flex items-center justify-center bg-white/5 border border-white/10 shrink-0">
+                    <section.icon className="w-4 h-4 text-[#6ee7b7]" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm text-white">{section.title}</div>
+                    <div className="text-xs text-neutral-500 mt-0.5">{section.desc}</div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-white transition-colors" />
+                </a>
+              ) : (
+                <div className="flex items-center gap-4 p-4 rounded border border-white/5 bg-[#111111] opacity-50 cursor-not-allowed">
+                  <div className="w-9 h-9 rounded flex items-center justify-center bg-white/5 border border-white/5 shrink-0">
+                    <section.icon className="w-4 h-4 text-neutral-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm text-white">{section.title}</div>
+                    <div className="text-xs text-neutral-500 mt-0.5">{section.desc}</div>
+                  </div>
+                  <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-white/10 text-neutral-400 bg-white/5">
+                    Coming Soon
+                  </span>
                 </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm text-white">{section.title}</div>
-                  <div className="text-xs text-[var(--color-muted-fg)] mt-0.5">{section.desc}</div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-[var(--color-surface-500)] group-hover:text-white transition-colors" />
-              </a>
-            ) : (
-              <div className="flex items-center gap-4 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-900)] opacity-60 cursor-not-allowed">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: "oklch(0.60 0.27 270 / 0.08)", border: "1px solid oklch(0.60 0.27 270 / 0.15)" }}>
-                  <section.icon className="w-4.5 h-4.5 text-[var(--color-surface-400)]" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm text-white">{section.title}</div>
-                  <div className="text-xs text-[var(--color-muted-fg)] mt-0.5">{section.desc}</div>
-                </div>
-                <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border"
-                  style={{ color: "oklch(0.65 0.18 75)", borderColor: "oklch(0.65 0.18 75 / 0.30)", background: "oklch(0.65 0.18 75 / 0.08)" }}>
-                  Coming Soon
-                </span>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

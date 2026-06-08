@@ -27,7 +27,7 @@ export function FinalCTASection({ isAuthenticated }: { isAuthenticated: boolean 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-lg mx-auto">
           <Link
-            href={isAuthenticated ? "/dashboard" : "/login"}
+            href={isAuthenticated ? "/build" : "/login"}
             className="group flex items-center justify-center gap-2 w-full px-6 h-12 text-lg font-medium rounded-full bg-[#6ee7b7] text-[#161616] hover:bg-[#52dca6] transition-colors"
           >
             <Wand2 className="w-5 h-5" />

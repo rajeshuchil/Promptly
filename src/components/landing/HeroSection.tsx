@@ -100,7 +100,7 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
       {/* CTA Buttons */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-lg mb-16">
         <Link
-          href={isAuthenticated ? "/dashboard" : "/login"}
+          href={isAuthenticated ? "/build" : "/login"}
           className="group flex items-center justify-center gap-2 w-full sm:w-auto px-6 h-12 text-lg font-medium rounded-full bg-[#6ee7b7] text-[#161616] hover:bg-[#52dca6] transition-colors"
         >
           <Wand2 className="w-5 h-5" />

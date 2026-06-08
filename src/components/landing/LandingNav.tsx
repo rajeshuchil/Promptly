@@ -22,7 +22,7 @@ export function LandingNav({ isAuthenticated }: { isAuthenticated: boolean }) {
 
         <div className="flex items-center space-x-3">
           {isAuthenticated ? (
-            <Link href="/dashboard">
+            <Link href="/build">
               <button className="h-9 px-3.5 rounded-md text-xs font-medium border border-white/10 bg-transparent hover:bg-white/5 text-white transition-colors">
                 Dashboard
               </button>

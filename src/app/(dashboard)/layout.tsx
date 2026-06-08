@@ -10,25 +10,20 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full">
-      {/* Ambient mesh background */}
-      <div className="mesh-bg" aria-hidden="true" />
-
+    <div className="flex h-full bg-black">
       {/* Sidebar */}
       <Sidebar />
 
-      {/* Main content area */}
+      {/* Main content area — children control their own padding/layout */}
       <main
         id="main-content"
         className="flex-1 overflow-y-auto h-full"
         style={{
           background:
-            "linear-gradient(180deg, var(--color-surface-950) 0%, var(--color-surface-900) 100%)",
+            "linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 100%)",
         }}
       >
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );
