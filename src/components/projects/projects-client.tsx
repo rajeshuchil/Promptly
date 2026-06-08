@@ -157,7 +157,7 @@ export function ProjectsClient() {
             return (
               <div
                 key={project.id}
-                className="relative group rounded-[var(--radius-lg)] border border-[oklch(0.20_0.02_270)] bg-[oklch(0.12_0.02_270/0.4)] backdrop-blur-md hover:bg-[oklch(0.12_0.02_270/0.65)] hover:border-[var(--color-surface-700)] transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg animate-fade-in"
+                className="relative group rounded-[var(--radius-lg)] border border-surface-500/30 bg-surface-800/40 backdrop-blur-md hover:bg-surface-800/65 hover:border-brand-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg animate-fade-in"
               >
                 <button
                   onClick={() => handleToggleFavorite(project.id, project.isFavorite, setProjects)}

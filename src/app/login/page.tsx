@@ -47,42 +47,42 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[oklch(0.05_0.02_270)] text-white">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background text-white">
       {/* Ambient glowing mesh background */}
       <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
         <div 
           className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-[120px]"
-          style={{ background: "radial-gradient(circle, oklch(0.60_0.27_270) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, var(--color-brand-500) 0%, transparent 70%)" }}
         />
         <div 
           className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px]"
-          style={{ background: "radial-gradient(circle, oklch(0.53_0.28_310) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, var(--color-brand-600) 0%, transparent 70%)" }}
         />
       </div>
 
       {/* Main card */}
-      <div className="relative z-10 w-full max-w-md p-8 mx-4 rounded-3xl border border-[oklch(0.25_0.02_270)] bg-[oklch(0.10_0.02_270/0.7)] backdrop-blur-xl shadow-2xl animate-fade-in">
+      <div className="relative z-10 w-full max-w-md p-8 mx-4 rounded-3xl border border-surface-500/30 bg-surface-900/70 backdrop-blur-xl shadow-2xl animate-fade-in">
         {/* Logo and header */}
         <div className="flex flex-col items-center mb-8">
           <div
             className="flex items-center justify-center w-12 h-12 rounded-2xl animate-pulse-glow mb-4"
             style={{
-              background: "linear-gradient(135deg, oklch(0.60_0.27_270), oklch(0.53_0.28_310))",
+              background: "linear-gradient(135deg, var(--color-brand-500), var(--color-brand-600))",
             }}
           >
             <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[oklch(0.92_0.01_270)] to-[oklch(0.79_0.16_270)] bg-clip-text text-transparent">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-brand-300 bg-clip-text text-transparent">
             Welcome back
           </h1>
-          <p className="text-sm text-[oklch(0.70_0.02_270)] mt-1.5 text-center">
+          <p className="text-sm text-surface-300 mt-1.5 text-center">
             Sign in to your FastApp workspace to continue building.
           </p>
         </div>
 
         {/* Error message */}
         {error && (
-          <div className="mb-6 p-3.5 rounded-xl bg-[oklch(0.15_0.08_20/0.5)] border border-[oklch(0.35_0.15_20)] text-sm text-[oklch(0.70_0.15_20)] text-center">
+          <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/35 text-sm text-rose-400 text-center">
             {error}
           </div>
         )}
@@ -90,11 +90,11 @@ export default function LoginPage() {
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-[oklch(0.70_0.02_270)] tracking-wide uppercase px-1">
+            <label className="text-xs font-semibold text-surface-300 tracking-wide uppercase px-1">
               Email Address
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[oklch(0.50_0.02_270)]">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-surface-500">
                 <Mail className="w-4 h-4" />
               </span>
               <input
@@ -103,17 +103,17 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-[oklch(0.25_0.02_270)] bg-[oklch(0.12_0.02_270/0.6)] focus:outline-none focus:border-[oklch(0.60_0.27_270)] focus:ring-1 focus:ring-[oklch(0.60_0.27_270)] text-white placeholder-[oklch(0.50_0.02_270)] transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-surface-500/30 bg-surface-950/60 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-white placeholder-surface-500 transition-all"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-[oklch(0.70_0.02_270)] tracking-wide uppercase px-1">
+            <label className="text-xs font-semibold text-surface-300 tracking-wide uppercase px-1">
               Password (Optional)
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[oklch(0.50_0.02_270)]">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-surface-500">
                 <Lock className="w-4 h-4" />
               </span>
               <input
@@ -121,7 +121,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-[oklch(0.25_0.02_270)] bg-[oklch(0.12_0.02_270/0.6)] focus:outline-none focus:border-[oklch(0.60_0.27_270)] focus:ring-1 focus:ring-[oklch(0.60_0.27_270)] text-white placeholder-[oklch(0.50_0.02_270)] transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-surface-500/30 bg-surface-950/60 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-white placeholder-surface-500 transition-all"
               />
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full flex items-center justify-center gap-2 mt-6 py-3 rounded-xl font-semibold text-white transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             style={{
-              background: "linear-gradient(135deg, oklch(0.60_0.27_270) 0%, oklch(0.53_0.28_310) 100%)",
+              background: "linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-brand-600) 100%)",
             }}
           >
             {isLoading ? (
@@ -148,15 +148,15 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-5 text-center text-xs text-[oklch(0.55_0.02_270)]">
+        <p className="mt-5 text-center text-xs text-surface-400">
           New to FastApp?{" "}
-          <span className="text-[oklch(0.69_0.22_270)] font-medium">
+          <span className="text-brand-400 font-medium">
             Enter any email to create a workspace instantly.
           </span>
         </p>
 
         <div className="mt-4 text-center">
-          <Link href="/" className="text-xs text-[oklch(0.50_0.02_270)] hover:text-[oklch(0.70_0.02_270)] transition-colors">
+          <Link href="/" className="text-xs text-surface-500 hover:text-surface-300 transition-colors">
             ← Back to homepage
           </Link>
         </div>

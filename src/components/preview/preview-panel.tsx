@@ -298,8 +298,7 @@ export function PreviewPanel({
           {status === "idle" && (
             <div className="space-y-4">
               <div
-                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
-                style={{ background: "oklch(0.60 0.27 270 / 0.12)" }}
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-brand-500/12"
               >
                 <Sparkles
                   className="w-7 h-7"

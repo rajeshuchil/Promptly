@@ -39,7 +39,7 @@ export function MetricsBar({
           </h3>
         </div>
         <div className="flex flex-col gap-1.5 items-end">
-          <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-gradient-to-r from-[oklch(0.60_0.27_270)] to-[oklch(0.53_0.28_310)] select-none">
+          <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-gradient-to-r from-brand-500 to-brand-600 select-none">
             Active
           </span>
           <Button
@@ -88,7 +88,7 @@ export function MetricsBar({
         </div>
         <div className="w-full bg-[var(--color-surface-950)] h-1.5 rounded-full mt-2.5 overflow-hidden border border-[var(--color-border)]">
           <div
-            className="bg-gradient-to-r from-[oklch(0.60_0.27_270)] to-[oklch(0.53_0.28_310)] h-full transition-all duration-500"
+            className="bg-gradient-to-r from-brand-500 to-brand-600 h-full transition-all duration-500"
             style={{ width: `${usagePct}%` }}
           />
         </div>

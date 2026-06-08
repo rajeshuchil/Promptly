@@ -35,25 +35,14 @@ function SidebarLogo() {
     <div className="flex items-center gap-2.5 px-3 py-5">
       {/* Icon mark */}
       <div
-        className="flex items-center justify-center w-8 h-8 rounded-[var(--radius-md)] animate-pulse-glow"
-        style={{
-          background:
-            "linear-gradient(135deg, oklch(0.60 0.27 270), oklch(0.53 0.28 310))",
-        }}
+        className="flex items-center justify-center w-8 h-8 rounded-[var(--radius-md)] animate-pulse-glow bg-gradient-to-tr from-brand-500 to-brand-600"
       >
         <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
       </div>
 
       {/* Wordmark */}
       <span
-        className="text-lg font-bold tracking-tight"
-        style={{
-          background:
-            "linear-gradient(135deg, oklch(0.88 0.003 270), oklch(0.79 0.16 270))",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-        }}
+        className="text-lg font-bold tracking-tight bg-gradient-to-tr from-surface-50 to-brand-300 bg-clip-text text-transparent"
       >
         FastApp
       </span>
@@ -140,10 +129,10 @@ export function Sidebar() {
 
       {/* User Profile Card */}
       {user && (
-        <div className="mx-3 mb-2 p-3 rounded-[var(--radius-lg)] border border-[oklch(0.20_0.02_270)] bg-[oklch(0.12_0.02_270/0.4)] backdrop-blur-sm flex items-center justify-between gap-3 overflow-hidden">
+        <div className="mx-3 mb-2 p-3 rounded-[var(--radius-lg)] border border-surface-500/30 bg-surface-900/40 backdrop-blur-sm flex items-center justify-between gap-3 overflow-hidden">
           <div className="flex items-center gap-2.5 min-w-0">
             {/* Avatar badge */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[oklch(0.60_0.27_270)] to-[oklch(0.53_0.28_310)] flex items-center justify-center text-xs font-bold text-white uppercase shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-brand-600 flex items-center justify-center text-xs font-bold text-white uppercase shrink-0">
               {user.name ? user.name[0] : (user.email ? user.email[0] : "?")}
             </div>
             
@@ -152,7 +141,7 @@ export function Sidebar() {
               <span className="text-xs font-semibold text-white truncate">
                 {user.name || "Developer"}
               </span>
-              <span className="text-[10px] text-[oklch(0.60_0.02_270)] truncate">
+              <span className="text-[10px] text-surface-400 truncate">
                 {user.email}
               </span>
             </div>
@@ -162,7 +151,7 @@ export function Sidebar() {
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             title="Sign Out"
-            className="p-1.5 rounded-lg text-[oklch(0.60_0.02_270)] hover:text-white hover:bg-[oklch(0.18_0.02_270)] transition-colors shrink-0 cursor-pointer"
+            className="p-1.5 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors shrink-0 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
           </button>
