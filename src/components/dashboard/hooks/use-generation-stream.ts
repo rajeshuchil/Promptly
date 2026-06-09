@@ -53,6 +53,9 @@ export function useGenerationStream({
         onComplete(data.projectId ?? "", data.html ?? "");
         onLoadProjects();
         onLoadUsage();
+      } else if (event === "warning") {
+        setGenerationMessage(data.message ?? "");
+        setActiveHtml("");
       } else if (event === "error") {
         setGenerationState("error");
         setGenerationError(data.message ?? "Generation failed");

@@ -100,6 +100,7 @@ export class GeneratorService {
         maxTokens: options?.maxTokens ?? 16_384,
         userId: options?.userId,
         phase: "generator",
+        onFallback: options?.onFallback,
       });
     } catch (error) {
       if (error instanceof AIError) throw error;
@@ -153,6 +154,7 @@ export class GeneratorService {
         maxTokens: options?.maxTokens ?? 16_384,
         userId: options?.userId,
         phase: "generator",
+        onFallback: options?.onFallback,
       });
 
       for await (const chunk of stream) {

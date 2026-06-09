@@ -149,10 +149,10 @@ export function DashboardClient() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[var(--color-brand-400)]" />
-                AI Website Generator
+                AI Page Generator
               </CardTitle>
               <CardDescription className="text-xs">
-                Describe the website you want. The AI will plan, generate, and validate it.
+                Describe the page you want. The AI will plan, generate, and validate it.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -180,7 +180,7 @@ export function DashboardClient() {
                     background: "var(--color-surface-950)",
                     border: "1px solid var(--color-border)",
                   }}
-                  placeholder="e.g. A dark mode SaaS landing page for a task tracker with pricing plans..."
+                  placeholder="e.g. A dark mode SaaS landing page for a task tracker..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   disabled={isGenerating}
@@ -219,7 +219,7 @@ export function DashboardClient() {
                   ) : (
                     <>
                       <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                      Generate Website
+                      Generate Page
                     </>
                   )}
                 </Button>

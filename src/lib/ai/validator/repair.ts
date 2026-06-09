@@ -29,6 +29,13 @@ export function repairHtml(rawHtml: string): RepairResult {
     actions.push("Stripped leading conversational text");
   }
 
+  // 2b. Prepend missing <!DOCTYPE html> if <html> and </html> are present
+  if (!/<!DOCTYPE html>/i.test(html) && /<html[\s>]/i.test(html) && /<\/html>/i.test(html)) {
+    html = "<!DOCTYPE html>\n" + html;
+    repaired = true;
+    actions.push("Prepended missing <!DOCTYPE html> declaration");
+  }
+
   // 3. Remove conversational text after </html>
   const htmlEndRegex = /<\/html>/gi;
   const endMatches = [...html.matchAll(htmlEndRegex)];

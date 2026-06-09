@@ -10,9 +10,36 @@ export function parseJsonContent(rawText: string): unknown {
   return JSON.parse(fenced ? fenced[1] : trimmed);
 }
 
+function cleanGeminiSchema(schema: any): any {
+  if (schema === null || typeof schema !== "object") {
+    return schema;
+  }
+  if (Array.isArray(schema)) {
+    return schema.map(cleanGeminiSchema);
+  }
+  const cleaned: Record<string, any> = {};
+  for (const [key, value] of Object.entries(schema)) {
+    if (
+      key === "$schema" ||
+      key === "$ref" ||
+      key === "definitions" ||
+      key === "$defs" ||
+      key === "additionalProperties"
+    ) {
+      continue;
+    }
+    cleaned[key] = cleanGeminiSchema(value);
+  }
+  return cleaned;
+}
+
 /** Convert a Zod schema to a plain JSON Schema object for Gemini's API. */
 export function toJsonSchema(schema: z.ZodSchema<unknown>): Record<string, unknown> {
-  return zodToJsonSchema(schema as z.ZodTypeAny, "Schema") as Record<string, unknown>;
+  const rawSchema = zodToJsonSchema(schema as z.ZodTypeAny) as Record<string, any>;
+  const cleanSchema = cleanGeminiSchema(rawSchema);
+
+  console.log("[Gemini] Generated clean response schema:", JSON.stringify(cleanSchema));
+  return cleanSchema;
 }
 
 /** Validate an HTTP Response from Gemini and throw a typed AIError on failure. */

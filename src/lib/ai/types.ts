@@ -37,6 +37,7 @@ export interface StructuredGenerationOptions {
   model?: string;
   userId?: string;
   phase?: "planner" | "generator" | "validator";
+  onFallback?: (message: string) => void;
 }
 export interface StreamingGenerationOptions extends StructuredGenerationOptions {
   onChunk?: (chunk: string) => void;

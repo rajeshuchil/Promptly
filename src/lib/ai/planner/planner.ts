@@ -19,6 +19,7 @@ export interface PlanGenerationOptions {
   projectId?: string;
   templateId?: string;
   blueprintId?: string;
+  onFallback?: (message: string) => void;
 }
 
 export class PlannerService {
@@ -152,6 +153,7 @@ Apply these rules to reduce layout ambiguity:
           maxTokens: 4096,
           userId: options?.userId,
           phase: "planner",
+          onFallback: options?.onFallback,
         }
       );
       return plan;

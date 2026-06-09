@@ -170,17 +170,29 @@ export class HtmlValidator {
    * Validate HTML, apply repair steps if needed, and return the final status.
    */
   public validateAndRepair(html: string, options?: ValidatorOptions): ValidationReport {
+    console.log("[HtmlValidator] Beginning validation and repair flow...");
+    console.log(`[HtmlValidator] Input length: ${html?.length ?? 0} characters`);
+    
     // Initial validation
     const initialReport = this.validate(html, options);
     if (initialReport.valid) {
+      console.log("[HtmlValidator] Initial HTML is valid. Skipping repair.");
       return initialReport;
     }
 
+    console.error("[HtmlValidator] Initial HTML is INVALID. Issues detected:", JSON.stringify(initialReport.issues, null, 2));
+
     // Attempt repair
     const repairResult = repairHtml(html);
+    console.log(`[HtmlValidator] Repair result: repaired=${repairResult.repaired}, actions=${JSON.stringify(repairResult.actions)}`);
     
     // Validate repaired HTML
     const repairedReport = this.validate(repairResult.html, options);
+    console.log(`[HtmlValidator] Post-repair validation result: valid=${repairedReport.valid}`);
+    if (!repairedReport.valid) {
+      console.error("[HtmlValidator] Repaired HTML is still INVALID. Final issues:", JSON.stringify(repairedReport.issues, null, 2));
+      console.error("[HtmlValidator] Snippet of failed HTML:", repairResult.html ? (repairResult.html.length > 500 ? repairResult.html.slice(0, 250) + "\n... [TRUNCATED] ...\n" + repairResult.html.slice(-250) : repairResult.html) : "EMPTY HTML");
+    }
 
     // If repair was applied, document it
     const finalIssues = [...repairedReport.issues];

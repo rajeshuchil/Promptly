@@ -18,14 +18,14 @@ import { cn } from "@/lib/utils";
 /* ─── Quick Start Chips ───────────────────────────────────────────────────── */
 
 const QUICK_CHIPS = [
-  { label: "SaaS Dashboard",       icon: LayoutDashboard, prompt: "Build a modern SaaS dashboard with metrics, charts, and a clean sidebar navigation" },
-  { label: "Startup Landing",      icon: Sparkles,        prompt: "Create a stunning AI startup landing page with a hero section, features bento grid, and pricing" },
-  { label: "Portfolio",            icon: Briefcase,       prompt: "Build a minimalist developer portfolio with project showcase, skills, and contact form" },
-  { label: "CRM Platform",         icon: Users,           prompt: "Create a CRM platform dashboard with client list, activity feed, and deal pipeline" },
-  { label: "Analytics Platform",   icon: BarChart3,       prompt: "Build an analytics platform with charts, metrics cards, tables, and filtering" },
-  { label: "AI Product",           icon: Cpu,             prompt: "Create an AI product landing page with feature highlights, demo section, and pricing" },
-  { label: "Documentation Site",   icon: BookOpen,        prompt: "Build a documentation website with sidebar navigation, search, and code examples" },
-  { label: "Cybersecurity",        icon: Shield,          prompt: "Create a cybersecurity platform dashboard with threat detection, logs, and security scores" },
+  { label: "SaaS Dashboard",       icon: LayoutDashboard, prompt: "Generate a modern SaaS dashboard page with metrics, charts, and a clean sidebar navigation" },
+  { label: "Startup Landing",      icon: Sparkles,        prompt: "Generate a stunning AI startup landing page with a hero section, features bento grid, and pricing" },
+  { label: "Portfolio",            icon: Briefcase,       prompt: "Generate a minimalist developer portfolio page with project showcase, skills, and contact form" },
+  { label: "CRM Platform",         icon: Users,           prompt: "Generate a CRM platform dashboard page with client list, activity feed, and deal pipeline" },
+  { label: "Analytics Platform",   icon: BarChart3,       prompt: "Generate an analytics page with charts, metrics cards, tables, and filtering" },
+  { label: "AI Product",           icon: Cpu,             prompt: "Generate an AI product landing page with feature highlights, demo section, and pricing" },
+  { label: "Documentation Page",   icon: BookOpen,        prompt: "Generate a documentation page with sidebar navigation, search, and code examples" },
+  { label: "Cybersecurity",        icon: Shield,          prompt: "Generate a cybersecurity page dashboard with threat detection, logs, and security scores" },
 ];
 
 /* ─── Style Options ───────────────────────────────────────────────────────── */
@@ -44,11 +44,10 @@ type StyleValue = typeof STYLES[number]["value"];
 
 const TEMPLATES = [
   { id: "saas-dashboard",   label: "SaaS Dashboard",      icon: LayoutDashboard, desc: "Metrics, charts, and sidebar" },
-  { id: "startup",          label: "AI Startup",          icon: Sparkles,        desc: "Landing with bento grid" },
-  { id: "portfolio",        label: "Portfolio",           icon: Briefcase,       desc: "Showcase and contact" },
-  { id: "crm",              label: "CRM Platform",        icon: Users,           desc: "Client management" },
-  { id: "analytics",        label: "Analytics",           icon: BarChart3,       desc: "Charts and metrics" },
-  { id: "cybersecurity",    label: "Cybersecurity",       icon: Shield,          desc: "Security dashboard" },
+  { id: "saas-landing",     label: "AI Startup Landing",  icon: Sparkles,        desc: "Landing with bento grid" },
+  { id: "portfolio-page",   label: "Portfolio Page",      icon: Briefcase,       desc: "Showcase and contact" },
+  { id: "pricing-page",     label: "Pricing Page",        icon: BarChart3,       desc: "Tiers and FAQ" },
+  { id: "login-page",       label: "Login Page",          icon: Shield,          desc: "Secure login form" },
 ];
 
 /* ─── Build Workspace ─────────────────────────────────────────────────────── */
@@ -151,7 +150,7 @@ export function BuildWorkspace() {
               className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
             >
               <X className="w-3.5 h-3.5" />
-              Back to Build
+              Back to Generate
             </button>
             <span className="w-px h-4 bg-white/10" />
             {isGenerating ? (
@@ -170,7 +169,7 @@ export function BuildWorkspace() {
             onClick={closePreview}
             className="h-7 px-3 rounded-md text-xs font-medium border border-white/10 text-white hover:bg-white/5 transition-colors"
           >
-            New Build
+            New Page
           </button>
         </div>
 
@@ -199,13 +198,13 @@ export function BuildWorkspace() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-white/[0.03] text-[10px] font-medium text-[#6ee7b7] mb-6">
             <Zap className="w-3 h-3" />
-            AI Pipeline: Planner → Generator → Validator → Deploy
+            AI Pipeline: Planner → Generator → Validator → Preview
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-[1.15] mb-4">
-            What would you like to build today?
+            What page would you like to generate today?
           </h1>
           <p className="text-sm md:text-base text-neutral-400 max-w-xl mx-auto leading-relaxed">
-            Describe the website you want and FastApp will plan, generate, validate, and deploy it.
+            Describe the page you want to generate and FastApp will plan, generate, validate, and preview it.
           </p>
         </div>
 
@@ -221,7 +220,7 @@ export function BuildWorkspace() {
               id="build-prompt"
               rows={3}
               className="w-full bg-transparent px-5 pt-4 pb-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none resize-none leading-relaxed"
-              placeholder='e.g. "Build a modern SaaS dashboard with metrics, charts, and dark theme..."'
+              placeholder='e.g. "Generate a modern SaaS landing page with hero, features bento grid, and pricing..."'
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               disabled={isGenerating}
@@ -256,9 +255,9 @@ export function BuildWorkspace() {
                   className="group flex items-center gap-2 h-8 px-4 rounded-lg bg-[#6ee7b7] text-[#161616] text-xs font-semibold hover:bg-[#52dca6] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   {isGenerating ? (
-                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Building…</>
+                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
                   ) : (
-                    <><Sparkles className="w-3.5 h-3.5" /> Build <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" /></>
+                    <><Sparkles className="w-3.5 h-3.5" /> Generate <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" /></>
                   )}
                 </button>
               </div>
@@ -349,7 +348,7 @@ export function BuildWorkspace() {
               return (
                 <button
                   key={tmpl.id}
-                  onClick={() => handleChip(`Build a ${tmpl.label.toLowerCase()} — ${tmpl.desc}`)}
+                  onClick={() => handleChip(`Generate a ${tmpl.label.toLowerCase()} — ${tmpl.desc}`)}
                   disabled={isGenerating}
                   className="group text-left rounded-lg border border-white/10 bg-[#111111] p-4 hover:border-[#6ee7b7]/30 hover:bg-[#161616] transition-all"
                 >

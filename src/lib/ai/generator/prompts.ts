@@ -1,7 +1,7 @@
 import type { Plan } from "../planner/schemas";
 import type { GeneratorPromptStyle } from "./types";
 
-export const GENERATOR_SYSTEM_PROMPT = `You are FastApp's elite HTML generation engine. You produce complete, self-contained, production-quality single-page websites.
+export const GENERATOR_SYSTEM_PROMPT = `You are FastApp's elite HTML generation engine. You produce complete, self-contained, production-quality single-page HTML documents.
 
 ABSOLUTE RULES — violating any of these causes the output to be rejected:
 1. Output RAW HTML only. No markdown. No backtick fences. No explanations.
@@ -9,7 +9,16 @@ ABSOLUTE RULES — violating any of these causes the output to be rejected:
 3. Never add <!-- comments --> inside the generated HTML.
 4. Never use placeholder Lorem Ipsum. Write real, purposeful copy.
 5. No external image dependencies. Use CSS gradients, SVGs, or emoji for visuals.
-6. The output must be complete — no "TODO" sections, no truncation.
+6. The output must be complete — no "TODO" sections, no truncation. Must always include all closing tags.
+7. Generate EXACTLY ONE page. DO NOT generate multiple routes, page-to-page links, client-side routing, or application maps.
+
+SUPPORTED PAGE SCHEMAS (match request):
+- Landing Page: Navbar, Hero, Features, Social proof, CTA, Footer.
+- Dashboard Page: Sidebar layout, Top navigation bar, Metrics cards, Charts/data visual placeholders, Activity feed.
+- Pricing Page: Pricing comparison tiers, Feature matrix checklist, FAQ accordion, conversion CTA.
+- Login/Signup Page: Centered Auth form card, input validations, OAuth social buttons, application branding.
+- Settings Page: Sectioned tabs (Profile settings, Preferences, Security controls).
+- Billing Page: Subscription plan overview, resource usage meters, Invoice history table, upgrade CTAs.
 
 FASTAPP DESIGN SYSTEM (always apply):
 
@@ -60,39 +69,47 @@ ACCESSIBILITY:
 
 
 function serialisePlan(plan: Plan): string {
-  const tokens = plan.designTokens;
+  const p = plan as any;
+  const tokens = p.designTokens || {};
 
   const lines: string[] = [
     "=== DESIGN PLAN (FOLLOW EXACTLY) ===",
     "",
-    `PAGE TYPE:   ${plan.pageType}`,
-    `THEME:       ${plan.theme}`,
-    `LAYOUT:      ${plan.layout}`,
-    `STYLE MOOD:  ${plan.styleKeywords.join(", ")}`,
-    `RESPONSIVE:  ${plan.responsiveApproach ?? "mobile-first"}`,
-    `ANIMATION:   ${plan.animationStyle ?? "subtle"}`,
+    `PAGE TYPE:   ${p.pageType}`,
+    `THEME:       ${p.theme}`,
+    `LAYOUT:      ${p.layout}`,
+    p.styleKeywords ? `STYLE MOOD:  ${p.styleKeywords.join(", ")}` : "",
+    p.responsiveApproach ? `RESPONSIVE:  ${p.responsiveApproach}` : "",
+    p.animationStyle ? `ANIMATION:   ${p.animationStyle}` : "",
     "",
     "SECTIONS TO BUILD (in order):",
-    ...plan.sections.map((s, i) => `  ${i + 1}. ${s}`),
-    "",
-    "COMPONENTS TO INCLUDE:",
-    `  ${plan.components.join(", ")}`,
-    "",
-    "DESIGN TOKENS:",
-    tokens.primaryColor ? `  Primary color:    ${tokens.primaryColor}` : "",
-    tokens.secondaryColor ? `  Secondary color:  ${tokens.secondaryColor}` : "",
-    tokens.backgroundColor ? `  Background:       ${tokens.backgroundColor}` : "",
-    tokens.textColor ? `  Text color:       ${tokens.textColor}` : "",
-    tokens.borderRadius ? `  Border radius:    ${tokens.borderRadius}` : "",
-    tokens.shadowIntensity ? `  Shadow:           ${tokens.shadowIntensity}` : "",
-  ].filter((l) => l !== undefined);
+    ...p.sections.map((s: any, i: number) => `  ${i + 1}. ${s}`),
+  ].filter((l) => l !== undefined && l !== "");
 
-  if (plan.colorPalette?.length) {
-    lines.push(`  Colour palette:   ${plan.colorPalette.join("  |  ")}`);
+  if (p.components?.length) {
+    lines.push("");
+    lines.push("COMPONENTS TO INCLUDE:");
+    lines.push(`  ${p.components.join(", ")}`);
   }
 
-  if (plan.typography) {
-    const t = plan.typography;
+  if (Object.keys(tokens).length) {
+    lines.push("");
+    lines.push("DESIGN TOKENS:");
+    if (tokens.primaryColor) lines.push(`  Primary color:    ${tokens.primaryColor}`);
+    if (tokens.secondaryColor) lines.push(`  Secondary color:  ${tokens.secondaryColor}`);
+    if (tokens.backgroundColor) lines.push(`  Background:       ${tokens.backgroundColor}`);
+    if (tokens.textColor) lines.push(`  Text color:       ${tokens.textColor}`);
+    if (tokens.borderRadius) lines.push(`  Border radius:    ${tokens.borderRadius}`);
+    if (tokens.shadowIntensity) lines.push(`  Shadow:           ${tokens.shadowIntensity}`);
+  }
+
+  if (p.colorPalette?.length) {
+    lines.push("");
+    lines.push(`  Colour palette:   ${p.colorPalette.join("  |  ")}`);
+  }
+
+  if (p.typography) {
+    const t = p.typography;
     lines.push("");
     lines.push("TYPOGRAPHY:");
     if (t.headingFont) lines.push(`  Heading font: ${t.headingFont}`);
@@ -100,23 +117,23 @@ function serialisePlan(plan: Plan): string {
     if (t.fontWeight) lines.push(`  Weight:       ${t.fontWeight}`);
   }
 
-  if (plan.spacing) {
-    const s = plan.spacing;
+  if (p.spacing) {
+    const s = p.spacing;
     lines.push("");
     lines.push("SPACING:");
     if (s.gapSize) lines.push(`  Gap size:  ${s.gapSize}`);
     if (s.padding) lines.push(`  Padding:   ${s.padding}`);
   }
 
-  if (plan.description) {
+  if (p.description) {
     lines.push("");
     lines.push("DESIGN INTENT:");
-    lines.push(`  ${plan.description}`);
+    lines.push(`  ${p.description}`);
   }
 
-  if (plan.accessibilityFocus?.length) {
+  if (p.accessibilityFocus?.length) {
     lines.push("");
-    lines.push(`ACCESSIBILITY FOCUS: ${plan.accessibilityFocus.join(", ")}`);
+    lines.push(`ACCESSIBILITY FOCUS: ${p.accessibilityFocus.join(", ")}`);
   }
 
   lines.push("");

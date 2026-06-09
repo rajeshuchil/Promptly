@@ -17,7 +17,7 @@ export function LandingFooter() {
             <Zap className="w-4 h-4 text-[#161616]" strokeWidth={2.5} />
           </div>
           <span className="font-bold text-white text-sm">FastApp</span>
-          <span className="text-neutral-400">— AI Website Platform</span>
+          <span className="text-neutral-400">— AI Page Platform</span>
         </div>
 
         {/* Links & Copyright */}

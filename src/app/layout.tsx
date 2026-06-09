@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 /* ── Fonts ────────────────────────────────────────────────────────────────── */
 
-const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
+const inter = {
+  variable: "font-sans",
+};
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
+const jetbrainsMono = {
+  variable: "font-mono",
+};
 
 /* ── Metadata ─────────────────────────────────────────────────────────────── */
 

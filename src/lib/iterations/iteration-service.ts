@@ -30,17 +30,20 @@ export function diffPlans(originalPlan: Plan, updatedPlan: Plan) {
     reorderedSections = true;
   }
 
-  const componentsOriginal = originalPlan.components || [];
-  const componentsUpdated = updatedPlan.components || [];
-  const addedComponents = componentsUpdated.filter((c) => !componentsOriginal.includes(c));
-  const removedComponents = componentsOriginal.filter((c) => !componentsUpdated.includes(c));
+  const o = originalPlan as any;
+  const u = updatedPlan as any;
+
+  const componentsOriginal = o.components || [];
+  const componentsUpdated = u.components || [];
+  const addedComponents = componentsUpdated.filter((c: any) => !componentsOriginal.includes(c));
+  const removedComponents = componentsOriginal.filter((c: any) => !componentsUpdated.includes(c));
 
   const pageTypeChanged = originalPlan.pageType !== updatedPlan.pageType;
   const themeChanged = originalPlan.theme !== updatedPlan.theme;
   const layoutChanged = originalPlan.layout !== updatedPlan.layout;
 
-  const designTokensOriginal = originalPlan.designTokens || {};
-  const designTokensUpdated = updatedPlan.designTokens || {};
+  const designTokensOriginal = o.designTokens || {};
+  const designTokensUpdated = u.designTokens || {};
   const tokenChanges: Array<{ key: string; from?: any; to?: any }> = [];
 
   for (const key of Object.keys({ ...designTokensOriginal, ...designTokensUpdated })) {
@@ -114,10 +117,7 @@ export class IterationService {
     }
   }
 
-  /**
-   * Modifies an existing plan based on a user feedback request.
-   */
-  public async editPlan(originalPlan: Plan, editPrompt: string, userId?: string): Promise<Plan> {
+  public async editPlan(originalPlan: Plan, editPrompt: string, userId?: string, onFallback?: (message: string) => void): Promise<Plan> {
     const userMessage = buildPlanEditorUserPrompt(originalPlan, editPrompt);
 
     try {
@@ -128,6 +128,7 @@ export class IterationService {
           systemPrompt: PLAN_EDITOR_SYSTEM_PROMPT,
           userId,
           phase: "planner",
+          onFallback,
         }
       );
       return updatedPlan;
@@ -146,7 +147,7 @@ export class IterationService {
    * running the quality evaluator, saving the revision, and updating the database.
    */
   public async *iterate(input: IterationInput): AsyncIterable<{
-    event: "planning" | "generating" | "chunk" | "validating" | "saving" | "complete" | "error";
+    event: "planning" | "generating" | "chunk" | "validating" | "saving" | "complete" | "error" | "warning";
     message?: string;
     chunk?: string;
     html?: string;
@@ -178,7 +179,17 @@ export class IterationService {
       // 2. Planning Phase (AI Edit Plan)
       yield { event: "planning", message: "Refining planner strategy based on revision request..." };
       
-      const updatedPlan = await this.editPlan(originalPlan, prompt, userId);
+      const eventQueue: { event: "warning"; message: string }[] = [];
+      const onFallback = (msg: string) => {
+        eventQueue.push({ event: "warning", message: msg });
+      };
+
+      const updatedPlan = await this.editPlan(originalPlan, prompt, userId, onFallback);
+      
+      while (eventQueue.length > 0) {
+        yield eventQueue.shift()!;
+      }
+
       const planDiff = diffPlans(originalPlan, updatedPlan);
 
       yield { event: "planning", message: "Plan strategy modified successfully.", plan: updatedPlan };
@@ -191,10 +202,15 @@ export class IterationService {
         systemPrompt: `${HTML_EDITOR_SYSTEM_PROMPT}\n\n${compileDesignSystemKnowledge()}`,
         userId,
         phase: "generator",
+        maxTokens: 8192,
+        onFallback,
       });
 
       let updatedHtml = "";
       for await (const chunk of stream) {
+        while (eventQueue.length > 0) {
+          yield eventQueue.shift()!;
+        }
         updatedHtml += chunk.text;
         yield { event: "chunk", chunk: chunk.text };
       }

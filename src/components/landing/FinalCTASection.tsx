@@ -16,7 +16,7 @@ export function FinalCTASection({ isAuthenticated }: { isAuthenticated: boolean 
 
         {/* Heading */}
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white">
-          Turn ideas into production-ready websites
+          Turn ideas into production-ready pages
         </h2>
         
         {/* Tagline */}
@@ -31,7 +31,7 @@ export function FinalCTASection({ isAuthenticated }: { isAuthenticated: boolean 
             className="group flex items-center justify-center gap-2 w-full px-6 h-12 text-lg font-medium rounded-full bg-[#6ee7b7] text-[#161616] hover:bg-[#52dca6] transition-colors"
           >
             <Wand2 className="w-5 h-5" />
-            Start Building
+            Start Generating
           </Link>
           {!isAuthenticated && (
             <Link

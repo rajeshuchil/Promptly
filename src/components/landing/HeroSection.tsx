@@ -12,10 +12,10 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [mockSuccess, setMockSuccess] = useState(false);
 
   const prompts = [
-    "SaaS dashboard with real-time analytics and dark mode",
-    "Modern portfolio site for a machine learning engineer",
+    "SaaS dashboard page with real-time analytics and dark mode",
+    "Modern portfolio page for a machine learning engineer",
     "Tailwind landing page for a cybersecurity platform",
-    "E-commerce storefront with Stripe checkout integrations",
+    "Pricing tier page with features checklist and FAQs",
   ];
 
   // Typing effect simulation
@@ -77,9 +77,9 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   }, [mockSuccess]);
 
   return (
-    <section className="relative z-10 px-6 pt-24 pb-20 max-w-7xl mx-auto flex flex-col items-center">
+    <section className="relative z-10 px-6 md:px-12 pt-28 pb-20 max-w-7xl mx-auto flex flex-col items-start text-left">
       {/* Sparkle badge */}
-      <div 
+      <div
         className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-[#1B1B1B] text-xs font-medium mb-8 text-[#6ee7b7]"
       >
         <Sparkles className="w-3.5 h-3.5 text-[#6ee7b7] animate-pulse" />
@@ -87,29 +87,29 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
       </div>
 
       {/* Main Headline */}
-      <h1 className="text-4xl md:text-6xl font-bold text-center tracking-tight leading-[1.1] max-w-4xl mb-8 text-white">
-        Build Production-Ready Websites<br />
+      <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-1xl mb-8 text-white">
+        Generate Production-Ready Pages<br />
         <span className="text-[#6ee7b7]">From a Prompt</span>
       </h1>
 
       {/* Value Proposition */}
-      <p className="text-sm md:text-base text-neutral-400 text-center max-w-2xl mb-10 leading-relaxed">
-        FastApp is a state-of-the-art AI design and code generator. Transpile natural language specifications into deployment-ready React structures, styles, and integrations in real time.
+      <p className="text-sm md:text-base text-neutral-400 max-w-[620px] mb-10 leading-relaxed">
+        FastApp is a state-of-the-art AI page design and code generator. Transpile natural language specifications into deployment-ready HTML structures, styling, and sections in real time.
       </p>
 
       {/* CTA Buttons */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-lg mb-16">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-4 w-full max-w-lg mb-16">
         <Link
           href={isAuthenticated ? "/build" : "/login"}
-          className="group flex items-center justify-center gap-2 w-full sm:w-auto px-6 h-12 text-lg font-medium rounded-full bg-[#6ee7b7] text-[#161616] hover:bg-[#52dca6] transition-colors"
+          className="group flex items-center justify-center gap-2 px-6 h-12 text-lg font-medium rounded-full bg-[#6ee7b7] text-[#161616] hover:bg-[#52dca6] transition-colors"
         >
           <Wand2 className="w-5 h-5" />
-          Start Building
+          Start Generating
           <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
         </Link>
         <a
           href="#pipeline"
-          className="group flex items-center justify-center gap-2 w-full sm:w-auto px-6 h-12 text-lg font-medium rounded-full border border-white/10 bg-transparent hover:bg-white/5 text-white transition-colors"
+          className="group flex items-center justify-center gap-2 px-6 h-12 text-lg font-medium rounded-full border border-white/10 bg-transparent hover:bg-white/5 text-white transition-colors"
         >
           <Play className="w-5 h-5 fill-current text-[#6ee7b7]" />
           View Demo
@@ -117,7 +117,7 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
       </div>
 
       {/* Prompt Input Visual Mockup */}
-      <div className="w-full max-w-3xl relative bg-[#1B1B1B] rounded border border-white/10 p-1 shadow-lg">
+      <div className="w-full max-w-2xl relative bg-[#1B1B1B] rounded border border-white/10 p-1 shadow-lg mb-16">
         {/* Terminal Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-[#161616] rounded-t">
           <div className="flex items-center gap-2">
@@ -137,9 +137,9 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
           <div>
             <div className="flex items-center gap-2 text-white/60 mb-4">
               <span className="text-[#6ee7b7] font-bold">➜</span>
-              <span>Describe the website you want to build:</span>
+              <span>Describe the page you want to generate:</span>
             </div>
-            
+
             {/* Input Line */}
             <div className="flex items-start gap-2 bg-[#1B1B1B] border border-white/5 rounded p-3">
               <Wand2 className="w-4 h-4 text-[#6ee7b7] mt-0.5 flex-shrink-0" />
@@ -174,14 +174,14 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
               <div className="space-y-4 animate-fade-in">
                 <div className="flex items-center gap-2 text-xs text-green-400">
                   <CheckCircle className="w-4 h-4" />
-                  <span>Success: Production-ready layout generated and deployed to edge sandbox!</span>
+                  <span>Success: Production-ready page generated and deployed to edge sandbox!</span>
                 </div>
                 <div className="rounded p-4 border border-white/5 bg-[#1B1B1B] flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Code2 className="w-5 h-5 text-green-400" />
                     <div>
                       <div className="text-xs text-white font-semibold">saas-dashboard-mockup-v1</div>
-                      <div className="text-[10px] text-white/50">Theme: Dashboard Dark · Pages: Dashboard, Settings</div>
+                      <div className="text-[10px] text-white/50">Theme: Dashboard Dark · Type: Dashboard Page</div>
                     </div>
                   </div>
                   <Link href="/login" className="text-xs font-semibold text-[#6ee7b7] hover:underline flex items-center gap-1">
@@ -202,14 +202,14 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
       </div>
 
       {/* Stats list */}
-      <div className="flex flex-wrap items-center justify-center gap-12 mt-16 text-sm text-neutral-400 max-w-4xl border-t border-white/5 pt-12 w-full">
+      <div className="flex flex-wrap items-start justify-start gap-x-16 gap-y-8 mt-4 text-sm text-neutral-400 max-w-4xl border-t border-white/5 pt-12 w-full">
         {[
           { value: "4 AI Providers", label: "Gemini · Claude · GPT · OpenRouter" },
-          { value: "7 Design Blueprints", label: "Dashboard · Minimal · SaaS Dashboard..." },
-          { value: "Complete Pipeline", label: "Plan → Generate → Validate → Deploy" },
+          { value: "9 Page Templates", label: "Dashboard · Landing · Pricing · Billing..." },
+          { value: "Complete Pipeline", label: "Plan → Generate → Validate → Preview" },
           { value: "Full Version Control", label: "Track edits and restore versions easily" },
         ].map((s) => (
-          <div key={s.label} className="text-center sm:text-left">
+          <div key={s.label} className="text-left">
             <div className="font-bold text-sm text-white">{s.value}</div>
             <div className="text-[11px] mt-0.5 text-neutral-400">{s.label}</div>
           </div>

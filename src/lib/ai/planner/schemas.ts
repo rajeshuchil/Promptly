@@ -26,18 +26,19 @@ export type Layout = z.infer<typeof LayoutSchema>;
 
 export const PageTypeSchema = z.enum([
   "landing",
-  "product-showcase",
-  "documentation",
-  "blog",
-  "portfolio",
   "dashboard",
-  "ecommerce",
-  "saas-homepage",
+  "pricing",
+  "billing",
+  "settings",
+  "login",
+  "signup",
+  "analytics",
+  "portfolio",
+  "documentation",
+  "project-detail",
   "contact",
   "about",
-  "admin-panel",
-  "crm",
-  "analytics",
+  "saas-homepage", // legacy/fallback compatibility
 ]);
 export type PageType = z.infer<typeof PageTypeSchema>;
 
@@ -123,8 +124,8 @@ export const PlanSchema = z.object({
   layout: LayoutSchema.describe("The structural layout/grid"),
   styleKeywords: z
     .array(z.string())
-    .min(1)
     .max(10)
+    .optional()
     .describe(
       "Keywords describing the visual style (e.g. 'modern', 'minimal', 'colorful')"
     ),
@@ -133,35 +134,10 @@ export const PlanSchema = z.object({
     .min(1)
     .max(15)
     .describe("List of section types that make up the page"),
-  components: z
-    .array(ComponentTypeSchema)
-    .min(1)
-    .max(30)
-    .describe("List of component types used throughout the design"),
-  designTokens: DesignTokensSchema.describe("Color and spacing choices"),
-  typography: TypographySchema.optional().describe("Font and text styling"),
-  spacing: SpacingSchema.optional().describe("Spacing and gap configuration"),
   description: z
     .string()
     .optional()
     .describe("Brief description of the design approach"),
-  colorPalette: z
-    .array(z.string())
-    .max(8)
-    .optional()
-    .describe("Array of colors used in the design"),
-  animationStyle: z
-    .enum(["none", "subtle", "medium", "bold"])
-    .optional()
-    .describe("Level of animation/motion"),
-  responsiveApproach: z
-    .enum(["mobile-first", "desktop-first", "fluid"])
-    .optional()
-    .describe("How the design adapts to different screen sizes"),
-  accessibilityFocus: z
-    .array(z.enum(["high-contrast", "large-text", "screen-reader", "keyboard-nav"]))
-    .optional()
-    .describe("Accessibility features prioritized"),
 });
 
 export type Plan = z.infer<typeof PlanSchema>;

@@ -64,5 +64,16 @@ export const MODEL_CATALOG: Record<string, AIModelDetails> = {
     maxOutputTokens: 4096,
     estimatedCostPerMillionInput: 0.52,
     estimatedCostPerMillionOutput: 0.75,
+  },
+  // Groq Models
+  "llama-3.3-70b-versatile": {
+    id: "llama-3.3-70b-versatile",
+    name: "Llama 3.3 70B (Groq)",
+    provider: "groq",
+    capabilities: { structured: true, streaming: true, vision: false },
+    contextLength: 128000,
+    maxOutputTokens: 4096,
+    estimatedCostPerMillionInput: 0.59,
+    estimatedCostPerMillionOutput: 0.79,
   }
 };

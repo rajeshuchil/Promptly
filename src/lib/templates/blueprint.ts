@@ -88,7 +88,7 @@ export const AdminPanelBlueprint: Blueprint = {
   id: "blueprint-admin-panel",
   name: "Admin Panel Blueprint",
   description: "Dense tabbed control panels, operational statistics, and pagination-equipped tables.",
-  pageType: "admin-panel",
+  pageType: "dashboard",
   defaultTheme: "dark",
   defaultLayout: "sidebar-nav",
   defaultStyleKeywords: ["compact", "dense", "functional", "operational"],
@@ -109,7 +109,7 @@ export const CRMBlueprint: Blueprint = {
   id: "blueprint-crm",
   name: "CRM Blueprint",
   description: "Split page card view containing details list, event feeds, and activity logs.",
-  pageType: "crm",
+  pageType: "dashboard",
   defaultTheme: "elegant",
   defaultLayout: "two-column",
   defaultStyleKeywords: ["sleek", "relationship-focused", "collaborative"],
@@ -150,13 +150,18 @@ export const AnalyticsBlueprint: Blueprint = {
 export const BLUEPRINTS: Record<string, Blueprint> = {
   landing: LandingPageBlueprint,
   dashboard: DashboardBlueprint,
+  pricing: LandingPageBlueprint,
+  billing: DashboardBlueprint,
+  settings: DashboardBlueprint,
+  login: LandingPageBlueprint,
+  signup: LandingPageBlueprint,
+  analytics: AnalyticsBlueprint,
   portfolio: PortfolioBlueprint,
   documentation: DocumentationBlueprint,
-  "admin-panel": AdminPanelBlueprint,
-  crm: CRMBlueprint,
-  analytics: AnalyticsBlueprint,
+  "project-detail": DashboardBlueprint,
+  contact: LandingPageBlueprint,
+  about: LandingPageBlueprint,
   "saas-homepage": LandingPageBlueprint, // Alias
-  "product-showcase": LandingPageBlueprint, // Alias
 };
 
 export function getBlueprintForPageType(pageType: string): Blueprint {

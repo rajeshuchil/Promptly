@@ -22,9 +22,10 @@ const serverEnvSchema = z.object({
   AUTH_URL: z.string().url().optional(),
 
   // ── AI Providers ────────────────────────────────────────────────────────────
-  GEMINI_API_KEY: z
+  GROQ_API_KEY: z
     .string()
-    .min(1, "GEMINI_API_KEY is required. Get one at https://aistudio.google.com/app/apikey"),
+    .min(1, "GROQ_API_KEY is required. Get one at https://console.groq.com"),
+  GEMINI_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
@@ -62,6 +63,7 @@ function validateServerEnv() {
   // Warn about missing optional AI providers in development
   if (parsed.data.NODE_ENV === "development") {
     const optionalProviders = [
+      ["GEMINI_API_KEY", "Gemini"],
       ["OPENAI_API_KEY", "OpenAI"],
       ["ANTHROPIC_API_KEY", "Anthropic"],
       ["OPENROUTER_API_KEY", "OpenRouter"],

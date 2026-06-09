@@ -25,7 +25,7 @@ export function PipelineSection() {
       icon: Layers,
       title: "Planner",
       tagline: "AI Orchestration Layer",
-      desc: "FastApp creates an actionable schema, planning component hierarchy, layout designs, routes, and database models before writing code.",
+      desc: "FastApp creates an actionable schema, planning component hierarchy, layout designs, and section sequence before writing code.",
       details: [
         "Constructs logical structure nodes in JSON format",
         "Identifies layout dependencies & UI patterns",
@@ -65,12 +65,12 @@ export function PipelineSection() {
     },
     {
       icon: Globe,
-      title: "Deploy",
-      tagline: "Instant Edge Distribution",
-      desc: "The website goes live on the edge workspace immediately. Accessible via a public URL, with built-in sandbox previews and edit capabilities.",
+      title: "Preview",
+      tagline: "Instant Rendering & Previews",
+      desc: "The page renders live in the sandbox environment immediately. Accessible via public preview URL, with built-in side-by-side editing capabilities.",
       details: [
-        "One-click deployment to global edge CDN",
-        "Complete version snapshot with restore support",
+        "Instant rendering on the sandbox viewer",
+        "Complete version history with rollback support",
         "Sandbox workspace enabled for instant interactive updates"
       ],
       color: "#6ee7b7",

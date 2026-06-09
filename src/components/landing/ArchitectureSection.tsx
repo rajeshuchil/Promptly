@@ -11,7 +11,7 @@ export function ArchitectureSection() {
     },
     {
       title: "SSE Streaming Generator Layer",
-      desc: "FastApp feeds the planning blueprint to the code generation engine. Client applications receive live React markup streamed token-by-token via Server-Sent Events (SSE).",
+      desc: "FastApp feeds the planning blueprint to the code generation engine. Client applications receive live HTML markup streamed token-by-token via Server-Sent Events (SSE).",
       badge: "SSE Stream"
     },
     {
@@ -51,19 +51,19 @@ export function ArchitectureSection() {
               <div><span className="text-blue-400">import</span> &#123; <span className="text-purple-400">PlannerService</span>, <span className="text-purple-400">GeneratorService</span> &#125; <span className="text-blue-400">from</span> <span className="text-green-400">"./services"</span>;</div>
               <div><span className="text-blue-400">import</span> &#123; <span className="text-purple-400">ASTValidator</span> &#125; <span className="text-blue-400">from</span> <span className="text-green-400">"./validator"</span>;</div>
               <div className="text-white/20">// -------------------------------------------------------------</div>
-              <div><span className="text-blue-400">export async function</span> <span className="text-yellow-400">compileWebsite</span>(prompt: <span className="text-orange-400">string</span>) &#123;</div>
+              <div><span className="text-blue-400">export async function</span> <span className="text-yellow-400">compilePage</span>(prompt: <span className="text-orange-400">string</span>) &#123;</div>
               <div className="pl-4 text-white/40">// Stage 1: Construct JSON Blueprint</div>
               <div className="pl-4"><span className="text-blue-400">const</span> blueprint = <span className="text-blue-400">await</span> <span className="text-purple-400">PlannerService</span>.<span className="text-yellow-400">createBlueprint</span>(prompt);</div>
               <div className="pl-4"><span className="text-purple-400">PlannerSchema</span>.<span className="text-yellow-400">parse</span>(blueprint);</div>
               <br />
-              <div className="pl-4 text-white/40">// Stage 2: SSE Stream React Markup & CSS</div>
+              <div className="pl-4 text-white/40">// Stage 2: SSE Stream HTML Markup & CSS</div>
               <div className="pl-4"><span className="text-blue-400">const</span> codeStream = <span className="text-blue-400">await</span> <span className="text-purple-400">GeneratorService</span>.<span className="text-yellow-400">streamCode</span>(blueprint);</div>
               <br />
               <div className="pl-4 text-white/40">// Stage 3: Self-healing AST Repair Verification</div>
               <div className="pl-4"><span className="text-blue-400">const</span> cleanCode = <span className="text-purple-400">ASTValidator</span>.<span className="text-yellow-400">healHTML</span>(codeStream);</div>
               <br />
-              <div className="pl-4 text-white/40">// Stage 4: One-Click Edge Publish</div>
-              <div className="pl-4"><span className="text-blue-400">return await</span> <span className="text-purple-400">DeployService</span>.<span className="text-yellow-400">publishToEdge</span>(cleanCode);</div>
+              <div className="pl-4 text-white/40">// Stage 4: Instant Preview Registration</div>
+              <div className="pl-4"><span className="text-blue-400">return await</span> <span className="text-purple-400">PreviewService</span>.<span className="text-yellow-400">registerPreview</span>(cleanCode);</div>
               <div>&#125;</div>
             </div>
 

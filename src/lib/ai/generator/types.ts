@@ -25,4 +25,5 @@ export interface GeneratorOptions {
   maxTokens?: number;
   temperature?: number;
   userId?: string;
+  onFallback?: (message: string) => void;
 }

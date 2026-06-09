@@ -48,6 +48,10 @@ export class EntitlementsService {
    * Checks if user has generation capacity remaining.
    */
   async canGenerate(userId: string): Promise<{ allowed: boolean; message?: string }> {
+    if (process.env.NODE_ENV === "development") {
+      return { allowed: true };
+    }
+
     const sub = await this.subscriptionService.getSubscription(userId);
     const limits = this.getPlanLimits(sub.plan);
 

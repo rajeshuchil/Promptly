@@ -6,6 +6,7 @@ export interface AIConfiguration {
     openai: boolean;
     anthropic: boolean;
     openrouter: boolean;
+    groq: boolean;
   };
 }
 
@@ -15,13 +16,14 @@ export class AIConfigService {
 
   private constructor() {
     this.config = {
-      defaultPlannerModel: process.env.AI_DEFAULT_PLANNER_MODEL || "gemini-2.5-flash",
-      defaultGeneratorModel: process.env.AI_DEFAULT_GENERATOR_MODEL || "gemini-2.5-flash",
+      defaultPlannerModel: process.env.AI_DEFAULT_PLANNER_MODEL || "llama-3.3-70b-versatile",
+      defaultGeneratorModel: process.env.AI_DEFAULT_GENERATOR_MODEL || "llama-3.3-70b-versatile",
       enabledProviders: {
-        gemini: process.env.AI_ENABLE_GEMINI !== "false",
+        gemini: !!process.env.GEMINI_API_KEY || process.env.AI_ENABLE_GEMINI === "true",
         openai: !!process.env.OPENAI_API_KEY || process.env.AI_ENABLE_OPENAI === "true",
         anthropic: !!process.env.ANTHROPIC_API_KEY || process.env.AI_ENABLE_ANTHROPIC === "true",
         openrouter: !!process.env.OPENROUTER_API_KEY || process.env.AI_ENABLE_OPENROUTER === "true",
+        groq: process.env.AI_ENABLE_GROQ !== "false",
       },
     };
   }

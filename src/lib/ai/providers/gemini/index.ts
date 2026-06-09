@@ -19,14 +19,7 @@ export class GeminiProvider implements AIProvider {
   private readonly defaultModel = "gemini-2.5-flash";
 
   private constructor() {
-    this.apiKey = process.env.GOOGLE_API_KEY ?? "";
-    if (!this.apiKey) {
-      throw new AIError(
-        "GOOGLE_API_KEY environment variable is not set",
-        AIErrorCode.INVALID_API_KEY,
-        500
-      );
-    }
+    this.apiKey = process.env.GEMINI_API_KEY ?? "";
   }
 
   static getInstance(): GeminiProvider {
@@ -35,6 +28,13 @@ export class GeminiProvider implements AIProvider {
   }
 
   async generateText(prompt: string, options?: StructuredGenerationOptions): Promise<string> {
+    if (!this.apiKey) {
+      throw new AIError(
+        "GEMINI_API_KEY environment variable is not set",
+        AIErrorCode.INVALID_API_KEY,
+        500
+      );
+    }
     try {
       const model = options?.model ?? this.defaultModel;
       const response = await fetch(`${this.baseUrl}/${model}:generateContent?key=${this.apiKey}`, {
@@ -44,7 +44,7 @@ export class GeminiProvider implements AIProvider {
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: options?.temperature ?? 0.7,
-            maxOutputTokens: options?.maxTokens ?? 1024,
+            maxOutputTokens: options?.maxTokens ?? 8192,
           },
           systemInstruction: options?.systemPrompt
             ? { parts: [{ text: options.systemPrompt }] }
@@ -73,6 +73,13 @@ export class GeminiProvider implements AIProvider {
     schema: z.ZodSchema<T>,
     options?: StructuredGenerationOptions
   ): Promise<T> {
+    if (!this.apiKey) {
+      throw new AIError(
+        "GEMINI_API_KEY environment variable is not set",
+        AIErrorCode.INVALID_API_KEY,
+        500
+      );
+    }
     try {
       const model = options?.model ?? this.defaultModel;
       const jsonSchema = toJsonSchema(schema);
@@ -86,7 +93,7 @@ export class GeminiProvider implements AIProvider {
             responseSchema: jsonSchema,
             responseMimeType: "application/json",
             temperature: options?.temperature ?? 0,
-            maxOutputTokens: options?.maxTokens ?? 4096,
+            maxOutputTokens: options?.maxTokens ?? 8192,
           },
           systemInstruction: options?.systemPrompt
             ? { parts: [{ text: options.systemPrompt }] }
@@ -123,6 +130,13 @@ export class GeminiProvider implements AIProvider {
   }
 
   async *streamText(prompt: string, options?: StreamingGenerationOptions): AsyncIterable<StreamChunk> {
+    if (!this.apiKey) {
+      throw new AIError(
+        "GEMINI_API_KEY environment variable is not set",
+        AIErrorCode.INVALID_API_KEY,
+        500
+      );
+    }
     try {
       const model = options?.model ?? this.defaultModel;
       const response = await fetch(
@@ -134,7 +148,7 @@ export class GeminiProvider implements AIProvider {
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: options?.temperature ?? 0.7,
-              maxOutputTokens: options?.maxTokens ?? 2048,
+              maxOutputTokens: options?.maxTokens ?? 8192,
             },
             systemInstruction: options?.systemPrompt
               ? { parts: [{ text: options.systemPrompt }] }

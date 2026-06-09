@@ -3,17 +3,19 @@ import { GeminiProvider } from "./gemini";
 import { OpenAIProvider } from "./openai";
 import { AnthropicProvider } from "./anthropic";
 import { OpenRouterProvider } from "./openrouter";
+import { GroqProvider } from "./groq";
 
 export class ProviderRegistry {
   private static instance: ProviderRegistry;
   private registry = new Map<string, AIProvider>();
 
   private constructor() {
-    // Register the four core providers
+    // Register the core providers
     this.register("gemini", GeminiProvider.getInstance());
     this.register("openai", OpenAIProvider.getInstance());
     this.register("anthropic", AnthropicProvider.getInstance());
     this.register("openrouter", OpenRouterProvider.getInstance());
+    this.register("groq", GroqProvider.getInstance());
   }
 
   static getInstance(): ProviderRegistry {

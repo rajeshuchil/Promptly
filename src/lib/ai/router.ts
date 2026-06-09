@@ -35,11 +35,11 @@ export class ModelRouter {
         const sub = await subscriptionService.getSubscription(userId);
         const plan = sub.plan;
 
-        // Free plan restriction: Free users are gated strictly to Gemini 2.5 Flash
+        // Free plan restriction: Free users are gated strictly to Llama 3.3 70B (Groq) or Gemini 2.5 Flash
         if (plan === "free") {
-          modelId = "gemini-2.5-flash";
+          modelId = "llama-3.3-70b-versatile";
         } else if (plan === "pro") {
-          // Pro plan capabilities: can use Gemini Pro, GPT-4o, Claude Sonnet, OpenRouter Llama
+          // Pro plan capabilities: can use Gemini Pro, GPT-4o, Claude Sonnet, OpenRouter Llama, Groq Llama
           const catalogModel = MODEL_CATALOG[modelId];
           const isAllowedModel =
             catalogModel &&
@@ -47,11 +47,12 @@ export class ModelRouter {
               catalogModel.id === "gemini-2.5-pro" ||
               catalogModel.id === "gpt-4o" ||
               catalogModel.id === "claude-3-5-sonnet-20241022" ||
-              catalogModel.id === "meta-llama/llama-3.1-70b-instruct");
+              catalogModel.id === "meta-llama/llama-3.1-70b-instruct" ||
+              catalogModel.id === "llama-3.3-70b-versatile");
 
           if (!isAllowedModel) {
             // Default Pro model fallbacks
-            modelId = phase === "planner" ? "gemini-2.5-flash" : "claude-3-5-sonnet";
+            modelId = phase === "planner" ? "llama-3.3-70b-versatile" : "claude-3-5-sonnet";
           }
         }
         // Enterprise plan: unrestricted access to all models in catalog
@@ -59,21 +60,21 @@ export class ModelRouter {
         console.error("Failed to check subscription during model routing, falling back to default:", err);
       }
     } else {
-      // No user context: default to Gemini 2.5 Flash for safety
-      modelId = "gemini-2.5-flash";
+      // No user context: default to Llama 3.3 70B (Groq) for safety
+      modelId = "llama-3.3-70b-versatile";
     }
 
     const modelDetails = MODEL_CATALOG[modelId];
     if (!modelDetails) {
       // Fallback model
-      return MODEL_CATALOG["gemini-2.5-flash"];
+      return MODEL_CATALOG["llama-3.3-70b-versatile"];
     }
 
     // 3. Verify if provider is enabled in admin config
     const providerEnabled = config.enabledProviders[modelDetails.provider];
     if (!providerEnabled) {
-      // Fallback to gemini-2.5-flash (since it must be always supported/running in dev mode)
-      return MODEL_CATALOG["gemini-2.5-flash"];
+      // Fallback to llama-3.3-70b-versatile
+      return MODEL_CATALOG["llama-3.3-70b-versatile"];
     }
 
     return modelDetails;

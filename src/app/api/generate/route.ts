@@ -133,6 +133,9 @@ export async function POST(request: Request) {
             userId: user.id,
             templateId,
             blueprintId,
+            onFallback: (msg) => {
+              sendEvent("warning", { message: msg });
+            },
           });
         } catch (e: any) {
           throw e;
@@ -155,7 +158,13 @@ export async function POST(request: Request) {
           const generatorService = GeneratorService.getInstance();
           const generatorStream = generatorService.stream(
             { prompt, plan },
-            { style, userId: user.id }
+            {
+              style,
+              userId: user.id,
+              onFallback: (msg) => {
+                sendEvent("warning", { message: msg });
+              },
+            }
           );
 
           let accumulatedHtml = "";
@@ -206,7 +215,7 @@ export async function POST(request: Request) {
         }
 
         // ── 4. Persistence Phase ──────────────────────────────────────────────
-        sendEvent("saving", { message: "Finalizing and saving website..." });
+        sendEvent("saving", { message: "Finalizing and saving page..." });
 
         const projectService = ProjectService.getInstance();
         const userId = user.id;
