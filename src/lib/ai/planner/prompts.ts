@@ -12,13 +12,25 @@ You must design a single page layout using the available component registry cata
      - ctaLabel: string (optional)
 
 2. **hero**
-   - Variants: 'split', 'centered'
+   - Variants: 'split', 'centered', 'spotlight-v1', 'lamp-v1'
    - Props:
      - headline: string (Main hero headline)
      - subheadline: string (Hero description/subheading)
      - primaryCTA: string (Main button text)
      - secondaryCTA: string (Secondary button text, optional)
      - imageSrc: string (Unsplash URL, optional)
+
+### Hero Variant Selection Rules:
+Prefer 'spotlight-v1' when the user request contains keywords or concepts relating to:
+- AI / Artificial Intelligence / Machine Learning
+- Developer tools / Coding assistants
+- Productivity / Automation / Workflows / Agents
+
+Prefer 'lamp-v1' when the user request contains keywords or concepts relating to:
+- Premium / Luxury / High-end / Executive
+- Enterprise / Business software / B2B SaaS / Professional platforms
+
+Otherwise, default to 'split' or 'centered'.
 
 3. **features**
    - Variants: 'three-column'

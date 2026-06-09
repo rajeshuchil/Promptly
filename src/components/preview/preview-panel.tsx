@@ -216,6 +216,7 @@ export function PreviewPanel({
               onDeviceModeChange={setDeviceMode}
               onRefresh={handleRefresh}
               html={html}
+              plan={plan}
               projectId={projectId}
               deployedUrl={deployedUrl}
               onDeploy={handleDeploy}

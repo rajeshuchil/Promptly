@@ -110,7 +110,9 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
               <button onClick={() => handleTabChange("timeline")} className={tabCls(activeTab === "timeline")}>📈 Timeline</button>
               <button onClick={() => handleTabChange("prompt")} className={tabCls(activeTab === "prompt")}>Prompt</button>
               <button onClick={() => handleTabChange("plan")} className={tabCls(activeTab === "plan")}>Planner Log</button>
-              <button onClick={() => handleTabChange("html")} className={tabCls(activeTab === "html")}>HTML</button>
+              <button onClick={() => handleTabChange("html")} className={tabCls(activeTab === "html")}>
+                {project.generatedMeta?.plan ? "Page Spec" : "HTML"}
+              </button>
               <button onClick={() => handleTabChange("meta")} className={tabCls(activeTab === "meta")}>Metadata</button>
               <button onClick={() => handleTabChange("deployments")} className={tabCls(activeTab === "deployments")}>Deploy History</button>
             </div>
@@ -147,6 +149,7 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
               {activeTab === "html" && (
                 <CodeViewer
                   generatedHtml={project.generatedHtml}
+                  plan={project.generatedMeta?.plan}
                   copied={copied}
                   handleCopyCode={handleCopyCode}
                 />
@@ -219,7 +222,7 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                     <Download className="w-3.5 h-3.5 mr-1" />HTML
                   </Button>
                   <Button variant="outline" className="flex-1 h-8 text-xs border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white" onClick={() => window.open(`/api/projects/${project.id}/export?format=zip`)}>
-                    <Download className="w-3.5 h-3.5 mr-1" />ZIP
+                    <Download className="w-3.5 h-3.5 mr-1" />Project
                   </Button>
                 </div>
               </div>

@@ -3,6 +3,8 @@ import { SaasNavbar } from '../library/navbar/SaasNavbar';
 import { MinimalNavbar } from '../library/navbar/MinimalNavbar';
 import { SplitHero } from '../library/hero/SplitHero';
 import { CenteredHero } from '../library/hero/CenteredHero';
+import { SpotlightHero } from '../library/hero/SpotlightHero';
+import { LampHero } from '../library/hero/LampHero';
 import { ThreeColumnFeatures } from '../library/features/ThreeColumnFeatures';
 import { ThreeTierPricing } from '../library/pricing/ThreeTierPricing';
 import { MinimalFooter } from '../library/footer/MinimalFooter';
@@ -37,6 +39,8 @@ export const ComponentRegistry: Record<string, Record<string, ComponentResolver>
     centered: CenteredHero,
     gradient: CenteredHero, // fallback
     minimal: CenteredHero, // fallback
+    'spotlight-v1': SpotlightHero,
+    'lamp-v1': LampHero,
   },
   features: {
     'three-column': ThreeColumnFeatures,

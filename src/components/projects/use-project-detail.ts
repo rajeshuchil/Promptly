@@ -51,8 +51,10 @@ export function useProjectDetail({ initialProject }: UseProjectDetailProps) {
   });
 
   const handleCopyCode = () => {
-    if (!project.generatedHtml) return;
-    navigator.clipboard.writeText(project.generatedHtml);
+    const plan = project.generatedMeta?.plan;
+    const textToCopy = plan ? JSON.stringify(plan, null, 2) : (project.generatedHtml || "");
+    if (!textToCopy) return;
+    navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

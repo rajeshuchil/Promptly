@@ -6,19 +6,26 @@ import { Button } from "@/components/ui/button";
 
 interface CodeViewerProps {
   generatedHtml: string | null;
+  plan?: any;
   copied: boolean;
   handleCopyCode: () => void;
 }
 
 export function CodeViewer({
   generatedHtml,
+  plan,
   copied,
   handleCopyCode,
 }: CodeViewerProps) {
+  const isV2 = plan && typeof plan === "object" && Object.keys(plan).length > 0;
+  const contentToDisplay = isV2 ? JSON.stringify(plan, null, 2) : (generatedHtml ?? "<!-- No HTML Content Generated -->");
+  const titleText = isV2 ? "Page Specification JSON" : "Clean Source Code";
+  const buttonText = isV2 ? "Copy Page Spec" : "Copy Code";
+
   return (
     <div className="space-y-3 h-full flex flex-col min-h-0">
       <div className="flex items-center justify-between shrink-0">
-        <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">Clean Source Code</span>
+        <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-surface-450)]">{titleText}</span>
         <Button
           variant="outline"
           size="sm"
@@ -31,13 +38,13 @@ export function CodeViewer({
             </>
           ) : (
             <>
-              <Code className="w-3 h-3 mr-1" />Copy Code
+              <Code className="w-3 h-3 mr-1" />{buttonText}
             </>
           )}
         </Button>
       </div>
       <pre className="flex-1 overflow-auto bg-[var(--color-surface-950)] p-3.5 rounded-md border border-[var(--color-border)] font-mono text-[10px] text-[var(--color-brand-200)] max-h-[380px] scrollbar-thin">
-        {generatedHtml ?? "<!-- No HTML Content Generated -->"}
+        {contentToDisplay}
       </pre>
     </div>
   );

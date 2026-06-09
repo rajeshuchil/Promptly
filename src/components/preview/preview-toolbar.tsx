@@ -22,6 +22,7 @@ interface PreviewToolbarProps {
   onDeviceModeChange: (mode: DeviceMode) => void;
   onRefresh: () => void;
   html: string;
+  plan?: any;
   projectId?: string | null;
   deployedUrl?: string | null;
   onDeploy?: () => void;
@@ -33,6 +34,7 @@ export function PreviewToolbar({
   onDeviceModeChange,
   onRefresh,
   html,
+  plan,
   projectId,
   deployedUrl,
   onDeploy,
@@ -44,11 +46,12 @@ export function PreviewToolbar({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(html);
+      const textToCopy = plan ? JSON.stringify(plan, null, 2) : html;
+      await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy HTML: ", err);
+      console.error("Failed to copy page specification: ", err);
     }
   };
 
@@ -91,7 +94,7 @@ export function PreviewToolbar({
       a.href = `/api/projects/${projectId}/export?format=zip`;
       a.click();
     } catch (err) {
-      console.error("Failed to export ZIP: ", err);
+      console.error("Failed to export Project: ", err);
     } finally {
       setExportingZip(false);
     }
@@ -176,17 +179,17 @@ export function PreviewToolbar({
           size="sm"
           className="h-8 gap-1.5 text-xs text-[var(--color-surface-200)]"
           onClick={handleCopy}
-          title="Copy HTML to Clipboard"
+          title="Copy Page Spec to Clipboard"
         >
           {copied ? (
             <>
               <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400">Copied!</span>
+              <span className="text-emerald-400">Page specification copied to clipboard</span>
             </>
           ) : (
             <>
               <Copy className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Copy HTML</span>
+              <span className="hidden md:inline">Copy Page Spec</span>
             </>
           )}
         </Button>
@@ -204,17 +207,17 @@ export function PreviewToolbar({
           <span className="hidden md:inline">Export HTML</span>
         </Button>
 
-        {/* ZIP Export Button */}
+        {/* Project Export Button */}
         <Button
           variant="ghost"
           size="sm"
           className="h-8 gap-1.5 text-xs text-[var(--color-surface-200)]"
           onClick={handleExportZip}
           disabled={exportingZip || !projectId}
-          title={projectId ? "Download Project ZIP Archive" : "Save project first to download ZIP"}
+          title={projectId ? "Download Project Archive" : "Save project first to download Project ZIP"}
         >
           <FileDown className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Export ZIP</span>
+          <span className="hidden md:inline">Export Project</span>
         </Button>
 
         {/* Deploy Button */}

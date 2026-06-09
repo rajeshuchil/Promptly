@@ -99,6 +99,14 @@ export type SectionType = z.infer<typeof SectionTypeSchema>;
 /**
  * Newly registered V2 Section variants:
  * 
+ * - hero:
+ *   - 'split'
+ *   - 'centered'
+ *   - 'minimal'
+ *   - 'gradient'
+ *   - 'spotlight-v1'
+ *   - 'lamp-v1'
+ * 
  * - feature-grid:
  *   - 'three-column-v1'
  *   - 'bento-v1'
