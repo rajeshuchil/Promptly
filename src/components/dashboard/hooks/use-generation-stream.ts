@@ -8,6 +8,7 @@ interface GenerationEventData {
   message?: string;
   chunk?: string;
   html?: string;
+  plan?: any;
   projectId?: string;
 }
 
@@ -28,6 +29,7 @@ export function useGenerationStream({
   const [generationState, setGenerationState] = useState<PreviewStatus>("idle");
   const [generationMessage, setGenerationMessage] = useState("");
   const [activeHtml, setActiveHtml] = useState<string | null>(null);
+  const [activePlan, setActivePlan] = useState<any | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
 
   const handleEvent = useCallback(
@@ -35,9 +37,15 @@ export function useGenerationStream({
       if (event === "planning") {
         setGenerationState("planning");
         setGenerationMessage(data.message ?? "");
+        if (data.plan) {
+          setActivePlan(data.plan);
+        }
       } else if (event === "generating") {
         setGenerationState("generating");
         setGenerationMessage(data.message ?? "");
+        if (data.plan) {
+          setActivePlan(data.plan);
+        }
       } else if (event === "chunk") {
         setGenerationState("generating");
         setActiveHtml((prev) => (prev ?? "") + (data.chunk ?? ""));
@@ -50,6 +58,9 @@ export function useGenerationStream({
       } else if (event === "complete") {
         setGenerationState("success");
         setActiveHtml(data.html ?? null);
+        if (data.plan) {
+          setActivePlan(data.plan);
+        }
         onComplete(data.projectId ?? "", data.html ?? "");
         onLoadProjects();
         onLoadUsage();
@@ -83,6 +94,7 @@ export function useGenerationStream({
       setIsGenerating(true);
       setGenerationError(null);
       setActiveHtml("");
+      setActivePlan(null);
       setGenerationState("planning");
       setGenerationMessage("Initiating website plan...");
 
@@ -100,9 +112,11 @@ export function useGenerationStream({
     generationState,
     generationMessage,
     activeHtml,
+    activePlan,
     generationError,
     generate,
     setActiveHtml,
+    setActivePlan,
     setGenerationState,
     setGenerationError,
   };

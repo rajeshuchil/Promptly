@@ -1,31 +1,63 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { DeviceMode } from "./types";
-import { Monitor, Tablet, Smartphone } from "lucide-react";
+import { PageRenderer } from "../builder/PageRenderer";
 
 interface PreviewFrameProps {
   html: string;
+  plan?: any;
   deviceMode: DeviceMode;
 }
 
-export function PreviewFrame({ html, deviceMode }: PreviewFrameProps) {
+export function PreviewFrame({ html, plan, deviceMode }: PreviewFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
 
-  // Write content directly to the iframe's document to prevent white flash flickering
-  React.useEffect(() => {
+  const isV2 = plan && Array.isArray(plan.sections) && plan.sections.length > 0 && typeof plan.sections[0] === 'object';
+
+  useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
     const doc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!doc) return;
 
-    doc.open();
-    doc.write(html || "<!DOCTYPE html><html><head></head><body style='background:#fff;'></body></html>");
-    doc.close();
-  }, [html]);
+    if (!isV2) {
+      // Legacy HTML path
+      setMountNode(null);
+      doc.open();
+      doc.write(html || "<!DOCTYPE html><html><head></head><body style='background:#0a0b0d;'></body></html>");
+      doc.close();
+    } else {
+      // V2 PageSpec path: Initialize iframe content with target container and styles
+      doc.open();
+      doc.write(`<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastApp Preview</title>
+</head>
+<body class="bg-slate-950 text-slate-50 min-h-screen">
+  <div id="preview-root"></div>
+</body>
+</html>`);
+      doc.close();
 
-  // Width classes matching standard responsive breakpoints
+      // Copy host styles into iframe head to enable Tailwind
+      const head = doc.head;
+      document.querySelectorAll('link[rel="stylesheet"], style').forEach((styleNode) => {
+        head.appendChild(styleNode.cloneNode(true));
+      });
+
+      const root = doc.getElementById("preview-root");
+      setMountNode(root);
+    }
+  }, [html, plan, isV2]);
+
+  // Frame styles matching standard responsive breakpoints
   const frameStyles = {
     desktop: {
       width: "100%",
@@ -53,7 +85,6 @@ export function PreviewFrame({ html, deviceMode }: PreviewFrameProps) {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center bg-[var(--color-surface-950)] overflow-auto p-4 md:p-6 select-none">
-      {/* Visual background pattern for contrast */}
       <div 
         className="absolute inset-0 opacity-5 pointer-events-none" 
         style={{
@@ -66,7 +97,6 @@ export function PreviewFrame({ html, deviceMode }: PreviewFrameProps) {
         className="transition-all duration-300 ease-in-out flex flex-col items-center justify-center overflow-hidden"
         style={frameStyles[deviceMode]}
       >
-        {/* Mobile Mock Speaker/Camera bar */}
         {deviceMode === "mobile" && (
           <div className="w-full bg-[var(--color-surface-800)] flex items-center justify-center pb-2 pt-1">
             <div className="w-16 h-3 bg-[var(--color-surface-900)] rounded-full flex items-center justify-center gap-1.5 px-2">
@@ -80,8 +110,14 @@ export function PreviewFrame({ html, deviceMode }: PreviewFrameProps) {
           ref={iframeRef}
           title="FastApp Site Preview"
           sandbox="allow-scripts allow-same-origin"
-          className="w-full h-full border-0 bg-white"
+          className="w-full h-full border-0 bg-transparent"
         />
+
+        {/* Render React component portal inside iframe body */}
+        {isV2 && mountNode && ReactDOM.createPortal(
+          <PageRenderer spec={plan} />,
+          mountNode
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,11 @@
 import { z } from "zod";
+import { PageSpecSchema, ThemeTypeSchema } from "@/lib/types/page-spec";
 
+// V2 Plan Schema (used for AI structured generation)
+export const PlanSchema = PageSpecSchema;
+export type Plan = z.infer<typeof PlanSchema>;
+
+// Legacy compatibility exports for Templates/Blueprints/Tabs
 export const ThemeSchema = z.enum([
   "minimal",
   "glassmorphism",
@@ -9,6 +15,10 @@ export const ThemeSchema = z.enum([
   "dark",
   "light",
   "gradient",
+  "modern-dark",
+  "sleek-light",
+  "neo-brutalism",
+  "minimalist",
 ]);
 export type Theme = z.infer<typeof ThemeSchema>;
 
@@ -38,56 +48,41 @@ export const PageTypeSchema = z.enum([
   "project-detail",
   "contact",
   "about",
-  "saas-homepage", // legacy/fallback compatibility
+  "saas-homepage",
 ]);
 export type PageType = z.infer<typeof PageTypeSchema>;
 
 export const DesignTokensSchema = z.object({
-  primaryColor: z.string().optional().describe("Primary brand color (hex or name)"),
-  secondaryColor: z
-    .string()
-    .optional()
-    .describe("Secondary accent color (hex or name)"),
-  backgroundColor: z.string().optional().describe("Background color (hex or name)"),
-  textColor: z.string().optional().describe("Primary text color (hex or name)"),
-  borderRadius: z
-    .string()
-    .optional()
-    .describe("Default border radius (e.g. '8px', 'rounded')"),
-  borderColor: z.string().optional().describe("Border color (hex or name)"),
-  shadowIntensity: z
-    .enum(["none", "subtle", "medium", "strong"])
-    .optional()
-    .describe("Shadow depth"),
+  primaryColor: z.string().optional(),
+  secondaryColor: z.string().optional(),
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
+  borderRadius: z.string().optional(),
+  borderColor: z.string().optional(),
+  shadowIntensity: z.enum(["none", "subtle", "medium", "strong"]).optional(),
 });
 export type DesignTokens = z.infer<typeof DesignTokensSchema>;
 
 export const TypographySchema = z.object({
-  headingFont: z.string().optional().describe("Font family for headings"),
-  bodyFont: z.string().optional().describe("Font family for body text"),
-  fontWeight: z.string().optional().describe("Font weight (e.g. 'bold', '600')"),
-  lineHeight: z.string().optional().describe("Line height for readability"),
+  headingFont: z.string().optional(),
+  bodyFont: z.string().optional(),
+  fontWeight: z.string().optional(),
+  lineHeight: z.string().optional(),
 });
 export type Typography = z.infer<typeof TypographySchema>;
 
 export const SpacingSchema = z.object({
-  padding: z
-    .string()
-    .optional()
-    .describe("Default padding (e.g. '16px', '1rem')"),
-  margin: z.string().optional().describe("Default margin (e.g. '24px', '1.5rem')"),
-  gapSize: z
-    .enum(["compact", "normal", "spacious"])
-    .optional()
-    .describe("Space between elements"),
+  padding: z.string().optional(),
+  margin: z.string().optional(),
+  gapSize: z.enum(["compact", "normal", "spacious"]).optional(),
 });
 export type Spacing = z.infer<typeof SpacingSchema>;
 
 export const SectionTypeSchema = z.enum([
   "hero",
   "navbar",
-  "feature-grid",
-  "testimonials",
+  "feature-grid", // V2 section
+  "testimonials", // V2 section
   "pricing",
   "faq",
   "contact-form",
@@ -95,11 +90,26 @@ export const SectionTypeSchema = z.enum([
   "blog-grid",
   "gallery",
   "stats",
-  "call-to-action",
+  "call-to-action", // V2 section
   "text-block",
   "image-block",
 ]);
 export type SectionType = z.infer<typeof SectionTypeSchema>;
+
+/**
+ * Newly registered V2 Section variants:
+ * 
+ * - feature-grid:
+ *   - 'three-column-v1'
+ *   - 'bento-v1'
+ * 
+ * - testimonials:
+ *   - 'grid-v1'
+ *   - 'carousel-v1'
+ * 
+ * - call-to-action:
+ *   - 'newsletter-v1'
+ */
 
 export const ComponentTypeSchema = z.enum([
   "button",
@@ -117,27 +127,3 @@ export const ComponentTypeSchema = z.enum([
   "breadcrumb",
 ]);
 export type ComponentType = z.infer<typeof ComponentTypeSchema>;
-
-export const PlanSchema = z.object({
-  pageType: PageTypeSchema.describe("The type of page being designed"),
-  theme: ThemeSchema.describe("The overall visual theme"),
-  layout: LayoutSchema.describe("The structural layout/grid"),
-  styleKeywords: z
-    .array(z.string())
-    .max(10)
-    .optional()
-    .describe(
-      "Keywords describing the visual style (e.g. 'modern', 'minimal', 'colorful')"
-    ),
-  sections: z
-    .array(SectionTypeSchema)
-    .min(1)
-    .max(15)
-    .describe("List of section types that make up the page"),
-  description: z
-    .string()
-    .optional()
-    .describe("Brief description of the design approach"),
-});
-
-export type Plan = z.infer<typeof PlanSchema>;

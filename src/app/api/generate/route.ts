@@ -149,39 +149,21 @@ export async function POST(request: Request) {
 
         // ── 2. Generation Phase ──────────────────────────────────────────────
         sendEvent("generating", {
-          message: "Structure planned. Generating code...",
+          message: "Structure planned. Mapping specifications...",
           plan,
         });
 
-        let cleanedHtml = "";
-        try {
-          const generatorService = GeneratorService.getInstance();
-          const generatorStream = generatorService.stream(
-            { prompt, plan },
-            {
-              style,
-              userId: user.id,
-              onFallback: (msg) => {
-                sendEvent("warning", { message: msg });
-              },
-            }
-          );
-
-          let accumulatedHtml = "";
-          for await (const chunk of generatorStream) {
-            if (request.signal.aborted) {
-              sendEvent("error", { message: "Client disconnected", phase: "network" });
-              controller.close();
-              return;
-            }
-            accumulatedHtml += chunk;
-            sendEvent("chunk", { chunk });
-          }
-
-          cleanedHtml = generatorService.cleanRawOutput(accumulatedHtml);
-        } catch (e: any) {
-          throw e;
-        }
+        const cleanedHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastApp V2 Page Spec</title>
+</head>
+<body>
+  <div id="fastapp-spec-renderer"></div>
+</body>
+</html>`;
 
         // ── 3. Validation Phase ──────────────────────────────────────────────
         sendEvent("validating", { message: "Validating generated markup..." });

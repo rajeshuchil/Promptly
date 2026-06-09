@@ -32,7 +32,16 @@ export class ExportService {
       );
     }
 
-    if (!project.generatedHtml) {
+    const plan = project.generatedMeta?.plan;
+    const isV2 = plan && Array.isArray((plan as any).sections) && (plan as any).sections.length > 0 && typeof (plan as any).sections[0] === 'object';
+
+    let htmlContent = project.generatedHtml || "";
+    if (isV2 && plan) {
+      const { compilePageSpecToHtml } = await import("@/lib/builder/compiler");
+      htmlContent = compilePageSpecToHtml(plan as any);
+    }
+
+    if (!htmlContent) {
       throw new AIError(
         "Project contains no generated HTML content to export",
         AIErrorCode.INVALID_SCHEMA,
@@ -51,13 +60,13 @@ export class ExportService {
         return {
           filename: `${safeName || "project"}.html`,
           contentType: "text/html; charset=utf-8",
-          data: project.generatedHtml,
+          data: htmlContent,
         };
       }
 
       case "zip": {
         const builder = new ZipBuilder();
-        builder.addFile("index.html", project.generatedHtml);
+        builder.addFile("index.html", htmlContent);
         builder.addFolder("assets");
         
         const readmeContent = buildReadmeTemplate(project.name, project.prompt);

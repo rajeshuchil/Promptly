@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 interface PreviewPanelProps {
   projectId?: string | null;
   generatedHtml?: string | null;
+  plan?: any;
   isLoading?: boolean;
   error?: string | null;
   onRefresh?: () => void;
@@ -20,6 +21,7 @@ interface PreviewPanelProps {
 export function PreviewPanel({
   projectId,
   generatedHtml,
+  plan: incomingPlan,
   isLoading: initialIsLoading = false,
   error: initialError = null,
   onRefresh,
@@ -29,6 +31,7 @@ export function PreviewPanel({
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [status, setStatus] = useState<PreviewStatus>("idle");
   const [html, setHtml] = useState<string | null>(null);
+  const [plan, setPlan] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [fetchingProject, setFetchingProject] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -43,6 +46,7 @@ export function PreviewPanel({
   useEffect(() => {
     if (!projectId) {
       setHtml(null);
+      setPlan(null);
       setDeployedUrl(null);
       setErrorMsg(null);
       return;
@@ -56,6 +60,7 @@ export function PreviewPanel({
         const data = await res.json();
         if (data.success && data.project) {
           setHtml(data.project.generatedHtml);
+          setPlan(data.project.generatedMeta?.plan || null);
           setDeployedUrl(data.project.deployedUrl || null);
           setStatus("success");
         } else {
@@ -82,6 +87,13 @@ export function PreviewPanel({
       }
     }
   }, [generatedHtml, generationState]);
+
+  // Sync incoming plan
+  useEffect(() => {
+    if (incomingPlan !== undefined) {
+      setPlan(incomingPlan);
+    }
+  }, [incomingPlan]);
 
   // Update status based on incoming generationState or other props
   useEffect(() => {
@@ -210,7 +222,7 @@ export function PreviewPanel({
               isDeploying={isDeploying}
             />
             <div className="flex-1 relative min-h-0">
-              <PreviewFrame html={html} deviceMode={deviceMode} />
+              <PreviewFrame html={html} plan={plan} deviceMode={deviceMode} />
             </div>
           </div>
         </>

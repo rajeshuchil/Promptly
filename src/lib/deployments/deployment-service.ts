@@ -66,7 +66,16 @@ export class DeploymentService {
       throw new AIError("Project not found", AIErrorCode.PROVIDER_ERROR, 404);
     }
 
-    if (!project.generatedHtml) {
+    const plan = project.generatedMeta?.plan;
+    const isV2 = plan && Array.isArray((plan as any).sections) && (plan as any).sections.length > 0 && typeof (plan as any).sections[0] === 'object';
+
+    let htmlContent = project.generatedHtml || "";
+    if (isV2 && plan) {
+      const { compilePageSpecToHtml } = await import("@/lib/builder/compiler");
+      htmlContent = compilePageSpecToHtml(plan as any);
+    }
+
+    if (!htmlContent) {
       throw new AIError(
         "Cannot deploy a project without generated HTML content",
         AIErrorCode.INVALID_SCHEMA,
@@ -110,7 +119,7 @@ export class DeploymentService {
     });
 
     // 4. Run streaming deploy from provider
-    const stream = provider.deployStream(projectId, project.generatedHtml, options);
+    const stream = provider.deployStream(projectId, htmlContent, options);
 
     for await (const chunk of stream) {
       // Keep record steps synchronized

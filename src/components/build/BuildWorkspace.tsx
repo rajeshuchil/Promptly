@@ -77,6 +77,7 @@ export function BuildWorkspace() {
     generationState,
     generationMessage,
     activeHtml,
+    activePlan,
     generationError,
     generate,
     setActiveHtml,
@@ -178,6 +179,7 @@ export function BuildWorkspace() {
           <PreviewPanel
             projectId={selectedProjectId}
             generatedHtml={activeHtml}
+            plan={activePlan}
             isLoading={isGenerating}
             error={generationError}
             onRefresh={loadProjects}

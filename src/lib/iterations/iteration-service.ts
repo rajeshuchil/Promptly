@@ -16,27 +16,28 @@ import { AIError, AIErrorCode } from "../ai/types";
 import { compileDesignSystemKnowledge } from "../design-system";
 
 export function diffPlans(originalPlan: Plan, updatedPlan: Plan) {
-  const sectionsOriginal = originalPlan.sections || [];
-  const sectionsUpdated = updatedPlan.sections || [];
+  const sectionsOriginal = (originalPlan.sections || []) as any[];
+  const sectionsUpdated = (updatedPlan.sections || []) as any[];
 
-  const addedSections = sectionsUpdated.filter((s) => !sectionsOriginal.includes(s));
-  const removedSections = sectionsOriginal.filter((s) => !sectionsUpdated.includes(s));
+  // Helper to get string key for a section
+  const getSecKey = (s: any) => typeof s === 'object' && s !== null ? s.type : String(s);
+
+  const origKeys = sectionsOriginal.map(getSecKey);
+  const updKeys = sectionsUpdated.map(getSecKey);
+
+  const addedSections = updKeys.filter((k) => !origKeys.includes(k));
+  const removedSections = origKeys.filter((k) => !updKeys.includes(k));
 
   // Check order
   let reorderedSections = false;
-  const commonSectionsOriginal = sectionsOriginal.filter((s) => sectionsUpdated.includes(s));
-  const commonSectionsUpdated = sectionsUpdated.filter((s) => sectionsOriginal.includes(s));
-  if (JSON.stringify(commonSectionsOriginal) !== JSON.stringify(commonSectionsUpdated)) {
+  const commonOriginal = origKeys.filter((k) => updKeys.includes(k));
+  const commonUpdated = updKeys.filter((k) => origKeys.includes(k));
+  if (JSON.stringify(commonOriginal) !== JSON.stringify(commonUpdated)) {
     reorderedSections = true;
   }
 
   const o = originalPlan as any;
   const u = updatedPlan as any;
-
-  const componentsOriginal = o.components || [];
-  const componentsUpdated = u.components || [];
-  const addedComponents = componentsUpdated.filter((c: any) => !componentsOriginal.includes(c));
-  const removedComponents = componentsOriginal.filter((c: any) => !componentsUpdated.includes(c));
 
   const pageTypeChanged = originalPlan.pageType !== updatedPlan.pageType;
   const themeChanged = originalPlan.theme !== updatedPlan.theme;
@@ -62,10 +63,6 @@ export function diffPlans(originalPlan: Plan, updatedPlan: Plan) {
       added: addedSections,
       removed: removedSections,
       reordered: reorderedSections,
-    },
-    components: {
-      added: addedComponents,
-      removed: removedComponents,
     },
     designTokens: tokenChanges,
   };
@@ -174,7 +171,6 @@ export class IterationService {
 
       // Get current plan & HTML
       const originalPlan = (project.generatedMeta?.plan || {}) as Plan;
-      const originalHtml = project.generatedHtml || "";
 
       // 2. Planning Phase (AI Edit Plan)
       yield { event: "planning", message: "Refining planner strategy based on revision request..." };
@@ -194,37 +190,26 @@ export class IterationService {
 
       yield { event: "planning", message: "Plan strategy modified successfully.", plan: updatedPlan };
 
-      // 3. Streaming HTML Edit Phase
-      yield { event: "generating", message: "Applying code modifications..." };
+      // 3. Streaming Code Mapping Phase (V2: Instant mapping)
+      yield { event: "generating", message: "Applying specification modifications..." };
 
-      const userMessage = buildHtmlEditorUserPrompt(originalHtml, updatedPlan, prompt);
-      const stream = this.provider.streamText(userMessage, {
-        systemPrompt: `${HTML_EDITOR_SYSTEM_PROMPT}\n\n${compileDesignSystemKnowledge()}`,
-        userId,
-        phase: "generator",
-        maxTokens: 8192,
-        onFallback,
-      });
+      const specHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastApp V2 Page Spec</title>
+</head>
+<body>
+  <div id="fastapp-spec-renderer"></div>
+</body>
+</html>`;
 
-      let updatedHtml = "";
-      for await (const chunk of stream) {
-        while (eventQueue.length > 0) {
-          yield eventQueue.shift()!;
-        }
-        updatedHtml += chunk.text;
-        yield { event: "chunk", chunk: chunk.text };
-      }
-
-      // Strip leading/trailing code fences if any leaked
-      let cleanedHtml = updatedHtml.trim();
-      const fenceMatch = cleanedHtml.match(/^```(?:html)?\s*([\s\S]*?)```\s*$/i);
-      if (fenceMatch && fenceMatch[1]) {
-        cleanedHtml = fenceMatch[1].trim();
-      }
+      yield { event: "chunk", chunk: specHtml };
 
       // 4. Quality Safeguard / Validation Phase
       yield { event: "validating", message: "Validating document layout & quality..." };
-      const validationReport = this.validator.validateAndRepair(cleanedHtml, {
+      const validationReport = this.validator.validateAndRepair(specHtml, {
         plan: updatedPlan,
       });
 

@@ -10,6 +10,7 @@ import { AIError, AIErrorCode } from "../types";
 import { getTemplateById } from "@/lib/templates/templates";
 import { getBlueprintForPageType } from "@/lib/templates/blueprint";
 import { compileDesignSystemKnowledge } from "@/lib/design-system";
+import { TEMPLATE_PRESETS } from "@/lib/templates/presets";
 
 export type PlannerStyle = "default" | "creative" | "accessible";
 
@@ -53,6 +54,10 @@ export class PlannerService {
     userPrompt: string,
     options?: PlanGenerationOptions
   ): Promise<Plan> {
+    if (options?.templateId && TEMPLATE_PRESETS[options.templateId]) {
+      return TEMPLATE_PRESETS[options.templateId];
+    }
+
     if (!userPrompt || userPrompt.trim().length === 0) {
       throw new AIError(
         "User prompt cannot be empty",

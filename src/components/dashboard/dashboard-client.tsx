@@ -29,6 +29,7 @@ export function DashboardClient() {
     generationState,
     generationMessage,
     activeHtml,
+    activePlan,
     generationError,
     generate,
     setActiveHtml,
@@ -247,6 +248,7 @@ export function DashboardClient() {
           <PreviewPanel
             projectId={selectedProjectId}
             generatedHtml={activeHtml}
+            plan={activePlan}
             isLoading={isGenerating}
             error={generationError}
             onRefresh={loadProjects}
