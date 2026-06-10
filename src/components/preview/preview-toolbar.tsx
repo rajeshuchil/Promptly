@@ -10,7 +10,6 @@ import {
   Maximize2,
   Copy,
   Check,
-  Download,
   FileDown,
   CloudLightning,
   ExternalLink,
@@ -41,7 +40,6 @@ export function PreviewToolbar({
   isDeploying = false,
 }: PreviewToolbarProps) {
   const [copied, setCopied] = useState(false);
-  const [exportingHtml, setExportingHtml] = useState(false);
   const [exportingZip, setExportingZip] = useState(false);
 
   const handleCopy = async () => {
@@ -60,29 +58,6 @@ export function PreviewToolbar({
     if (previewWindow) {
       previewWindow.document.write(html);
       previewWindow.document.close();
-    }
-  };
-
-  const handleExportHtml = () => {
-    setExportingHtml(true);
-    try {
-      if (projectId) {
-        const a = document.createElement("a");
-        a.href = `/api/projects/${projectId}/export?format=html`;
-        a.click();
-      } else {
-        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "index.html";
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    } catch (err) {
-      console.error("Failed to export HTML: ", err);
-    } finally {
-      setExportingHtml(false);
     }
   };
 
@@ -192,19 +167,6 @@ export function PreviewToolbar({
               <span className="hidden md:inline">Copy Page Spec</span>
             </>
           )}
-        </Button>
-
-        {/* HTML Export Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1.5 text-xs text-[var(--color-surface-200)]"
-          onClick={handleExportHtml}
-          disabled={exportingHtml}
-          title="Download Single index.html File"
-        >
-          <Download className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Export HTML</span>
         </Button>
 
         {/* Project Export Button */}

@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOMServer from "react-dom/server";
 import { PageRenderer } from "@/components/builder/PageRenderer";
 import type { PageSpec } from "@/lib/types/page-spec";
 
@@ -8,7 +7,9 @@ import type { PageSpec } from "@/lib/types/page-spec";
  * Uses React Server-Side Rendering to render the component tree, and links Tailwind CSS
  * and Google Fonts for beautiful presentation.
  */
-export function compilePageSpecToHtml(spec: PageSpec): string {
+export async function compilePageSpecToHtml(spec: PageSpec): Promise<string> {
+  const { default: ReactDOMServer } = await import("react-dom/server");
+
   // Render components tree to HTML string
   const bodyHtml = ReactDOMServer.renderToStaticMarkup(
     React.createElement(PageRenderer, { spec })

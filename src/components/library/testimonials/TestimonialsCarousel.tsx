@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "@/lib/utils";
+import { cn, getThemeClasses } from "@/lib/utils";
 import { User, Quote } from "lucide-react";
 
 interface TestimonialsCarouselProps {
@@ -10,20 +10,24 @@ interface TestimonialsCarouselProps {
     name: string;
     role?: string;
   }[];
+  tokens?: any;
 }
 
 export function TestimonialsCarousel({
   title,
   variant,
   items = [],
+  tokens,
 }: TestimonialsCarouselProps) {
+  const theme = getThemeClasses(tokens);
+
   if (variant === "grid-v1") {
     return (
-      <section className="py-24 bg-slate-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.05),transparent_70%)] pointer-events-none" />
+      <section className={`py-24 relative overflow-hidden ${theme.bg} ${theme.text}`}>
+        <div className={`absolute inset-0 ${theme.isLight ? "bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.02),transparent_70%)]" : "bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.05),transparent_70%)]"} pointer-events-none`} />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
               {title}
             </h2>
           </div>
@@ -32,20 +36,20 @@ export function TestimonialsCarousel({
             {items.map((item, index) => (
               <div
                 key={index}
-                className="p-8 rounded-2xl border border-slate-800/80 bg-slate-900/30 hover:border-slate-800 transition-all duration-300 flex flex-col justify-between"
+                className={`p-8 border hover:bg-slate-500/5 transition-all duration-300 flex flex-col justify-between ${theme.cardBg} ${theme.border} ${theme.radius}`}
               >
-                <Quote className="w-8 h-8 text-indigo-500/20 mb-6" />
-                <p className="text-slate-300 italic mb-6 leading-relaxed">
+                <Quote className={`w-8 h-8 mb-6 ${theme.isLight ? "text-zinc-300" : "text-indigo-500/20"}`} />
+                <p className={`italic mb-6 leading-relaxed ${theme.isLight ? "text-zinc-700" : "text-slate-300"}`}>
                   "{item.quote}"
                 </p>
-                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-slate-800/50">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center">
+                <div className={`flex items-center gap-3 mt-auto pt-4 border-t ${theme.borderMuted}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${theme.isLight ? "bg-zinc-100" : "bg-slate-800"}`}>
                     <User className="w-5 h-5 text-slate-400" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">{item.name}</h4>
+                    <h4 className="text-sm font-semibold">{item.name}</h4>
                     {item.role && (
-                      <p className="text-xs text-slate-400 mt-0.5">{item.role}</p>
+                      <p className={`text-xs mt-0.5 ${theme.textMuted}`}>{item.role}</p>
                     )}
                   </div>
                 </div>
@@ -60,10 +64,10 @@ export function TestimonialsCarousel({
   const scrollItems = [...items, ...items];
 
   return (
-    <section className="py-24 bg-slate-950 relative overflow-hidden">
+    <section className={`py-24 relative overflow-hidden ${theme.bg} ${theme.text}`}>
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+          <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
             {title}
           </h2>
         </div>
@@ -78,19 +82,19 @@ export function TestimonialsCarousel({
             {scrollItems.map((item, index) => (
               <div
                 key={index}
-                className="w-[350px] shrink-0 p-8 rounded-2xl border border-slate-800/80 bg-slate-900/30 flex flex-col justify-between whitespace-normal"
+                className={`w-[350px] shrink-0 p-8 border flex flex-col justify-between whitespace-normal ${theme.cardBg} ${theme.border} ${theme.radius}`}
               >
-                <p className="text-slate-300 text-sm leading-relaxed mb-6">
+                <p className={`text-sm leading-relaxed mb-6 ${theme.isLight ? "text-zinc-700" : "text-slate-300"}`}>
                   "{item.quote}"
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${theme.isLight ? "bg-zinc-100" : "bg-slate-800"}`}>
                     <User className="w-4 h-4 text-slate-400" />
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-xs font-semibold text-white truncate">{item.name}</h4>
+                    <h4 className="text-xs font-semibold truncate">{item.name}</h4>
                     {item.role && (
-                      <p className="text-[10px] text-slate-400 truncate">{item.role}</p>
+                      <p className={`text-[10px] truncate ${theme.textMuted}`}>{item.role}</p>
                     )}
                   </div>
                 </div>

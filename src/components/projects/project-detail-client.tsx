@@ -217,11 +217,8 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
               <div className="space-y-2.5 pl-2">
                 <h4 className="text-xs font-extrabold text-white">Export Code</h4>
                 <p className="text-[10px] text-[var(--color-muted-fg)]">Download the generated source code for editing.</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 h-8 text-xs border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white" onClick={() => window.open(`/api/projects/${project.id}/export?format=html`)}>
-                    <Download className="w-3.5 h-3.5 mr-1" />HTML
-                  </Button>
-                  <Button variant="outline" className="flex-1 h-8 text-xs border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white" onClick={() => window.open(`/api/projects/${project.id}/export?format=zip`)}>
+                <div className="flex">
+                  <Button variant="outline" className="w-full h-8 text-xs border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white" onClick={() => window.open(`/api/projects/${project.id}/export?format=zip`)}>
                     <Download className="w-3.5 h-3.5 mr-1" />Project
                   </Button>
                 </div>

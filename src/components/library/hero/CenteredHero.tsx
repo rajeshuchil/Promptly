@@ -1,4 +1,5 @@
 import React from "react";
+import { getThemeClasses } from "@/lib/utils";
 
 interface CenteredHeroProps {
   headline?: string;
@@ -13,20 +14,19 @@ export const CenteredHero: React.FC<CenteredHeroProps> = ({
   primaryCTA = "Start building now",
   tokens
 }) => {
-  const primaryBgColor = tokens?.primaryColor ? `bg-${tokens.primaryColor}` : 'bg-indigo-600';
-  const primaryHoverBgColor = tokens?.primaryColor ? `hover:bg-${tokens.primaryColor}/80` : 'hover:bg-indigo-600/80';
+  const theme = getThemeClasses(tokens);
 
   return (
-    <div className="relative overflow-hidden py-24 sm:py-32 flex flex-col items-center justify-center text-center">
+    <div className={`relative overflow-hidden py-24 sm:py-32 flex flex-col items-center justify-center text-center ${theme.bg} ${theme.text}`}>
       <div className="mx-auto max-w-4xl px-6">
-        <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl bg-gradient-to-r from-slate-100 via-slate-300 to-slate-500 bg-clip-text text-transparent">
+        <h1 className={`text-4xl font-extrabold tracking-tight sm:text-6xl ${theme.isLight ? "text-zinc-900" : "bg-gradient-to-r from-slate-100 via-slate-300 to-slate-500 bg-clip-text text-transparent"}`}>
           {headline}
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-400">
+        <p className={`mx-auto mt-6 max-w-2xl text-lg leading-8 ${theme.textMuted}`}>
           {subheadline}
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
-          <button className={`inline-flex h-12 items-center justify-center rounded-lg px-8 text-sm font-semibold text-white shadow-sm transition-colors ${primaryBgColor} ${primaryHoverBgColor}`}>
+          <button className={`inline-flex h-12 items-center justify-center px-8 text-sm font-semibold text-white shadow-sm transition-colors ${theme.primaryBg} ${theme.primaryHoverBg} ${theme.radius}`}>
             {primaryCTA}
           </button>
         </div>

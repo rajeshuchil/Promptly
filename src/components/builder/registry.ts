@@ -11,6 +11,7 @@ import { MinimalFooter } from '../library/footer/MinimalFooter';
 import { BentoFeatureGrid } from '../library/features/BentoFeatureGrid';
 import { TestimonialsCarousel } from '../library/testimonials/TestimonialsCarousel';
 import { NewsletterCTA } from '../library/cta/NewsletterCTA';
+import { MinimalCTA } from '../library/cta/MinimalCTA';
 
 // Fallback Mock Component for missing types/variants
 const PlaceholderComponent = (name: string): React.FC<any> => {
@@ -59,6 +60,7 @@ export const ComponentRegistry: Record<string, Record<string, ComponentResolver>
   },
   'call-to-action': {
     'newsletter-v1': NewsletterCTA,
+    'minimal-v1': MinimalCTA,
   },
   footer: {
     minimal: MinimalFooter,

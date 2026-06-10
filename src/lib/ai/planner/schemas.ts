@@ -117,6 +117,7 @@ export type SectionType = z.infer<typeof SectionTypeSchema>;
  * 
  * - call-to-action:
  *   - 'newsletter-v1'
+ *   - 'minimal-v1'
  */
 
 export const ComponentTypeSchema = z.enum([

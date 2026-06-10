@@ -72,7 +72,7 @@ export class DeploymentService {
     let htmlContent = project.generatedHtml || "";
     if (isV2 && plan) {
       const { compilePageSpecToHtml } = await import("@/lib/builder/compiler");
-      htmlContent = compilePageSpecToHtml(plan as any);
+      htmlContent = await compilePageSpecToHtml(plan as any);
     }
 
     if (!htmlContent) {

@@ -34,6 +34,18 @@ export const PageSpecSchema = z.object({
   pageType: z.string(),
   theme: ThemeTypeSchema,
   layout: z.string(),
+  designStyle: z.enum([
+    "modern-saas",
+    "glassmorphism",
+    "minimal-light",
+    "neo-brutalism",
+    "luxury",
+    "startup",
+    "corporate",
+    "fintech",
+    "creative-agency",
+    "futuristic-ai"
+  ]).optional(),
   designTokens: DesignTokensSchema,
   sections: z.array(SectionSpecSchema),
 });
