@@ -15,6 +15,7 @@ import {
   Hammer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 /* ─── Nav items ──────────────────────────────────────────────────────────── */
 
@@ -60,23 +61,28 @@ function NavLink({ href, icon: Icon, label, isActive }: NavLinkProps) {
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs font-medium transition-all duration-150",
-        isActive
-          ? "bg-white/[0.06] text-white border border-white/10"
-          : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
+        "relative group flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs font-medium transition-colors duration-200",
+        isActive ? "text-white" : "text-neutral-400 hover:text-white"
       )}
     >
+      {isActive && (
+        <motion.div
+          layoutId="active-nav-pill"
+          className="absolute inset-0 bg-white/[0.04] border border-white/[0.06] rounded-md"
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        />
+      )}
       <Icon
         className={cn(
-          "w-4 h-4 flex-shrink-0 transition-colors",
-          isActive ? "text-[#6ee7b7]" : "text-neutral-500"
+          "w-4 h-4 flex-shrink-0 transition-all duration-200 z-10",
+          isActive ? "text-[#6ee7b7]" : "text-neutral-500 group-hover:text-neutral-300 group-hover:translate-x-0.5"
         )}
         strokeWidth={isActive ? 2.5 : 2}
       />
-      <span>{label}</span>
+      <span className="z-10">{label}</span>
       {/* Build gets an accent indicator */}
       {href === "/build" && isActive && (
-        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#6ee7b7] animate-pulse" />
+        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#6ee7b7] animate-pulse z-10" />
       )}
     </Link>
   );
@@ -92,7 +98,7 @@ export function Sidebar() {
   return (
     <aside
       id="app-sidebar"
-      className="flex flex-col w-56 shrink-0 h-full border-r border-white/5 bg-[#0a0a0a]"
+      className="flex flex-col w-56 shrink-0 h-full border-r border-white/[0.04] bg-[#09090b]/90 backdrop-blur-xl"
       aria-label="Main navigation"
     >
       {/* Logo */}
@@ -132,31 +138,38 @@ export function Sidebar() {
 
       {/* User Profile Card */}
       {user && (
-        <div className="mx-3 mb-2 p-3 rounded-lg border border-white/5 bg-white/[0.03] flex items-center justify-between gap-3 overflow-hidden">
-          <div className="flex items-center gap-2.5 min-w-0">
-            {/* Avatar badge */}
-            <div className="w-7 h-7 rounded-full bg-[#6ee7b7] flex items-center justify-center text-[10px] font-bold text-[#161616] uppercase shrink-0">
-              {user.name ? user.name[0] : (user.email ? user.email[0] : "?")}
+        <div className="mx-3 mb-2 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 flex flex-col gap-3 shadow-lg shadow-black/40">
+          <div className="flex items-center justify-between gap-2.5 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {/* Avatar badge */}
+              <div className="w-7 h-7 rounded-full bg-[#6ee7b7] flex items-center justify-center text-[10px] font-bold text-[#161616] uppercase shrink-0 ring-1 ring-white/10">
+                {user.name ? user.name[0] : (user.email ? user.email[0] : "?")}
+              </div>
+              {/* Details */}
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-white truncate">
+                    {user.name || "Developer"}
+                  </span>
+                  <span className="px-1 py-0.5 rounded text-[8px] font-extrabold uppercase bg-[#6ee7b7]/10 text-[#6ee7b7] border border-[#6ee7b7]/20 select-none">
+                    PRO
+                  </span>
+                </div>
+                <span className="text-[9px] text-neutral-500 truncate">
+                  {user.email}
+                </span>
+              </div>
             </div>
-            {/* Details */}
-            <div className="flex flex-col min-w-0">
-              <span className="text-[11px] font-semibold text-white truncate">
-                {user.name || "Developer"}
-              </span>
-              <span className="text-[9px] text-neutral-500 truncate">
-                {user.email}
-              </span>
-            </div>
-          </div>
 
-          {/* Sign Out Button */}
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            title="Sign Out"
-            className="p-1.5 rounded-md text-neutral-500 hover:text-white hover:bg-white/5 transition-colors shrink-0 cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
+            {/* Sign Out Button */}
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              title="Sign Out"
+              className="p-1.5 rounded-md text-neutral-500 hover:text-white hover:bg-white/5 transition-colors shrink-0 cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       )}
 
