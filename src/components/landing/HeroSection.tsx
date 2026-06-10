@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, Wand2, Play, Code2, ArrowRight, CheckCircle, Terminal } from "lucide-react";
 import Text3DFlip from "@/components/ui/text-3d-flip";
+import LightRays from "@/components/ui/light-rays";
 
 export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [promptText, setPromptText] = useState("");
@@ -78,8 +79,49 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   }, [mockSuccess]);
 
   return (
-    <section className="relative z-10 px-6 md:px-12 pt-28 pb-20 max-w-7xl mx-auto flex flex-col items-start text-left">
-      {/* Sparkle badge */}
+    <section className="relative w-full overflow-hidden pt-28 pb-20 border-b border-white/5 bg-[#030303]">
+      {/* Layer 2a: Ambient Glow Layer */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: "radial-gradient(circle at 50% 0%, rgba(0, 245, 212, 0.18), transparent 60%)"
+        }}
+      />
+
+      {/* Layer 2b: LightRays background */}
+      <div
+        className="absolute inset-0 pointer-events-none z-1 opacity-75"
+        style={{ filter: "blur(0.5px)" }}
+      >
+        <LightRays
+          raysOrigin="top-center"
+          raysColor="#00f5d4"
+          raysSpeed={0.45}
+          lightSpread={0.9}
+          rayLength={2.5}
+          followMouse={true}
+          mouseInfluence={0.08}
+          noiseAmount={0.0}
+          distortion={0.06}
+          pulsating={false}
+          fadeDistance={1.4}
+        />
+      </div>
+
+      {/* Layer 3: Subtle grid overlay over the light rays */}
+      <div
+        className="pointer-events-none absolute inset-0 select-none opacity-[0.15] z-5"
+        style={{
+          backgroundImage: "linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "40px 40px"
+        }}
+      />
+      {/* Bottom fade out overlay to ensure seamless transition to next sections */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none z-6" />
+
+      {/* Layer 4: Hero Content Container */}
+      <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-start text-left">
+        {/* Sparkle badge */}
       <div
         className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-[#1B1B1B] text-xs font-medium mb-8 text-[#6ee7b7]"
       >
@@ -220,6 +262,7 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
             <div className="text-[11px] mt-0.5 text-neutral-400">{s.label}</div>
           </div>
         ))}
+      </div>
       </div>
     </section>
   );
