@@ -6,6 +6,7 @@ import { ArrowLeft, Download, Globe, Play, Copy, RefreshCw, Trash2, Loader2 } fr
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Project } from "@/lib/projects/types";
+import { motion } from "framer-motion";
 
 // Custom hooks & sub-components
 import { useProjectDetail } from "./use-project-detail";
@@ -58,10 +59,10 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
   } = useProjectDetail({ initialProject });
 
   const tabCls = (active: boolean) =>
-    `flex-1 py-3 px-4 text-xs font-bold border-b-2 transition-all duration-200 whitespace-nowrap ${
+    `relative flex-1 py-3 px-4 text-xs font-bold transition-all duration-200 whitespace-nowrap text-center cursor-pointer ${
       active
-        ? "border-[var(--color-brand-500)] text-white bg-[var(--color-surface-950)]/45"
-        : "border-transparent text-[var(--color-surface-400)] hover:text-white"
+        ? "text-white bg-[var(--color-surface-950)]/25"
+        : "text-[var(--color-surface-400)] hover:text-white"
     }`;
 
   return (
@@ -104,17 +105,35 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
         {/* Left: Tabbed Details */}
         <div className="lg:col-span-5 flex flex-col gap-6">
           <Card className="flex-1 flex flex-col border-[var(--color-border)] bg-[var(--color-surface-900)] min-h-0 overflow-hidden">
-            <div className="flex border-b border-[var(--color-border)] bg-black/10 shrink-0 overflow-x-auto scrollbar-none">
-              <button onClick={() => handleTabChange("edit")} className={tabCls(activeTab === "edit")}>✨ Edit with AI</button>
-              <button onClick={() => handleTabChange("history")} className={tabCls(activeTab === "history")}>🕒 Version History</button>
-              <button onClick={() => handleTabChange("timeline")} className={tabCls(activeTab === "timeline")}>📈 Timeline</button>
-              <button onClick={() => handleTabChange("prompt")} className={tabCls(activeTab === "prompt")}>Prompt</button>
-              <button onClick={() => handleTabChange("plan")} className={tabCls(activeTab === "plan")}>Planner Log</button>
-              <button onClick={() => handleTabChange("html")} className={tabCls(activeTab === "html")}>
-                {project.generatedMeta?.plan ? "Page Spec" : "HTML"}
-              </button>
-              <button onClick={() => handleTabChange("meta")} className={tabCls(activeTab === "meta")}>Metadata</button>
-              <button onClick={() => handleTabChange("deployments")} className={tabCls(activeTab === "deployments")}>Deploy History</button>
+            <div className="flex border-b border-[var(--color-border)] bg-black/10 shrink-0 overflow-x-auto scrollbar-none relative">
+              {[
+                { id: "edit", label: "✨ Edit with AI" },
+                { id: "history", label: "🕒 Version History" },
+                { id: "timeline", label: "📈 Timeline" },
+                { id: "prompt", label: "Prompt" },
+                { id: "plan", label: "Planner Log" },
+                { id: "html", label: project.generatedMeta?.plan ? "Page Spec" : "HTML" },
+                { id: "meta", label: "Metadata" },
+                { id: "deployments", label: "Deploy History" }
+              ].map((tabItem) => {
+                const active = activeTab === tabItem.id;
+                return (
+                  <button
+                    key={tabItem.id}
+                    onClick={() => handleTabChange(tabItem.id as any)}
+                    className={tabCls(active)}
+                  >
+                    <span className="relative z-10">{tabItem.label}</span>
+                    {active && (
+                      <motion.div
+                        layoutId="projectDetailActiveTabIndicator"
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--color-brand-500)] z-0"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 text-xs min-h-0 leading-relaxed">

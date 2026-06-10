@@ -4,15 +4,15 @@
 ───────────────────────────────────────────────────────────────────────────── */
 
 /* ── Google Fonts (must come before @import "tailwindcss") ───────────────── */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @import "tailwindcss";
 
 /* ── Tailwind v4 theme tokens ─────────────────────────────────────────────── */
 @theme inline {
   /* Typography */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-sans: "Geist", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", "Fira Code", monospace;
 
   /* ── Colour palette ─────────────────────────────────────────────────────── */
 
@@ -42,11 +42,11 @@
   --color-surface-50:  oklch(0.96 0 0);   /* high-contrast text */
 
   /* Semantic aliases (dark-mode-first, overridden in :root light if needed) */
-  --color-background: var(--color-surface-900);
+  --color-background: var(--color-surface-950);
   --color-foreground: var(--color-surface-100);
 
-  --color-card:         var(--color-surface-700);
-  --color-card-hover:   var(--color-surface-600);
+  --color-card:         var(--color-surface-800);
+  --color-card-hover:   var(--color-surface-700);
   --color-border:       var(--color-surface-500);
   --color-border-muted: var(--color-surface-400);
 
@@ -65,6 +65,11 @@
   --color-warning:    oklch(0.75 0.18 75);
   --color-warning-fg: oklch(0.15 0 0);
 
+  /* Borders system */
+  --color-border-light: oklch(1 0 0 / 0.04);
+  --color-border-medium: oklch(1 0 0 / 0.08);
+  --color-border-focus: var(--color-brand-400);
+
   /* ── Radius ──────────────────────────────────────────────────────────────── */
   --radius-sm: 0.375rem;   /* 6px  */
   --radius-md: 0.625rem;   /* 10px */
@@ -75,6 +80,11 @@
   /* ── Shadows ─────────────────────────────────────────────────────────────── */
   --shadow-glow-brand: 0 0 40px -8px oklch(0.60 0.27 165 / 0.45);
   --shadow-glow-sm:    0 0 15px -4px oklch(0.60 0.27 165 / 0.25);
+
+  --shadow-elevation-0: none;
+  --shadow-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.3);
+  --shadow-elevation-2: 0 4px 12px -2px oklch(0 0 0 / 0.4), 0 2px 4px -1px oklch(0 0 0 / 0.3);
+  --shadow-elevation-3: 0 20px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.5);
 
   /* ── Animations ─────────────────────────────────────────────────────────── */
   --duration-fast:   150ms;
@@ -428,4 +438,24 @@ body {
     0 8px 40px -8px oklch(0.60 0.27 165 / 0.25),
     0 24px 60px -16px oklch(0.00 0.00 0 / 0.4);
   transform: translateY(-3px);
+}
+
+.shimmer-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-800);
+}
+
+.shimmer-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.04),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
 }

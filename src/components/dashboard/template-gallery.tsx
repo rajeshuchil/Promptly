@@ -4,6 +4,7 @@ import React from "react";
 import { Layers, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { STARTER_TEMPLATES, TEMPLATE_CATEGORIES } from "@/lib/templates";
+import { motion } from "framer-motion";
 
 const TEMPLATE_GRADIENTS: Record<string, string> = {
   "saas-dashboard": "from-indigo-600 to-indigo-900",
@@ -60,27 +61,44 @@ export function TemplateGallery({
         <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => onSetCategory("all")}
-            className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all duration-200 ${
+            className={`relative px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
               activeCategory === "all"
-                ? "bg-[var(--color-brand-500)] text-white"
+                ? "text-white"
                 : "bg-[var(--color-surface-950)] border border-[var(--color-border)] text-[var(--color-surface-300)] hover:text-white"
             }`}
           >
-            All
+            <span className="relative z-10">All</span>
+            {activeCategory === "all" && (
+              <motion.div
+                layoutId="activeCategoryPill"
+                className="absolute inset-0 bg-[var(--color-brand-500)] rounded-full z-0"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
           </button>
-          {TEMPLATE_CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => onSetCategory(cat.id)}
-              className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all duration-200 ${
-                activeCategory === cat.id
-                  ? "bg-[var(--color-brand-500)] text-white"
-                  : "bg-[var(--color-surface-950)] border border-[var(--color-border)] text-[var(--color-surface-300)] hover:text-white"
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+          {TEMPLATE_CATEGORIES.map((cat) => {
+            const active = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSetCategory(cat.id)}
+                className={`relative px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                  active
+                    ? "text-white"
+                    : "bg-[var(--color-surface-950)] border border-[var(--color-border)] text-[var(--color-surface-300)] hover:text-white"
+                }`}
+              >
+                <span className="relative z-10">{cat.name}</span>
+                {active && (
+                  <motion.div
+                    layoutId="activeCategoryPill"
+                    className="absolute inset-0 bg-[var(--color-brand-500)] rounded-full z-0"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

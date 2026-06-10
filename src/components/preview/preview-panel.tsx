@@ -4,8 +4,11 @@ import React, { useState, useEffect } from "react";
 import { DeviceMode, PreviewStatus, DeployStep } from "./types";
 import { PreviewToolbar } from "./preview-toolbar";
 import { PreviewFrame } from "./preview-frame";
-import { Sparkles, AlertTriangle, Loader2, Database, ShieldAlert, Cpu } from "lucide-react";
+import { Sparkles, AlertTriangle, Loader2, Database, ShieldAlert, Cpu, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { LandingPageSkeleton, DashboardSkeleton } from "./preview-skeletons";
+import { cn } from "@/lib/utils";
 
 interface PreviewPanelProps {
   projectId?: string | null;
@@ -189,7 +192,42 @@ export function PreviewPanel({
     }
   };
 
-  const isLiveStreaming = status === "generating" && html;
+      const isLiveStreaming = status === "generating" && html;
+  
+  const getStepStatus = (stepKey: string) => {
+    if (status === "success") return "completed";
+    
+    const order = ["planning", "selecting", "generating", "validating", "saving"];
+    const currentIdx = order.indexOf(
+      status === "generating" 
+        ? (html ? "generating" : "selecting")
+        : status
+    );
+    const stepIdx = order.indexOf(stepKey);
+
+    if (status === "error") {
+      if (stepIdx === currentIdx) return "failed";
+      if (stepIdx < currentIdx) return "completed";
+      return "pending";
+    }
+
+    if (stepIdx < currentIdx) return "completed";
+    if (stepIdx === currentIdx) return "active";
+    return "pending";
+  };
+
+  const checklistSteps = [
+    { key: "planning", label: "Planning page layout" },
+    { key: "selecting", label: "Selecting components" },
+    { key: "generating", label: "Generating page sections" },
+    { key: "validating", label: "Validating specification" },
+    { key: "saving", label: "Compiling and rendering" }
+  ];
+
+  // Simple heuristic
+  const promptInput = typeof document !== "undefined" ? (document.getElementById("prompt-input") || document.getElementById("build-prompt")) as HTMLTextAreaElement : null;
+  const promptText = promptInput?.value || "";
+  const isDashboardProject = /dashboard|crm|analytics|admin|app|platform/i.test(promptText || generationMessage || "") || (plan && typeof plan === "object" && (plan.pageType === "dashboard" || plan.designStyle === "dashboard"));
 
   return (
     <div
@@ -227,107 +265,126 @@ export function PreviewPanel({
             </div>
           </div>
         </>
+      ) : fetchingProject ? (
+        /* RENDER SKELETON WHILE FETCHING AN EXISTING PROJECT */
+        <div className="flex-1 flex items-center justify-center bg-[#09090b] p-6">
+          <div className="w-full h-full border border-white/5 rounded-xl bg-[#0e0e11] overflow-hidden shadow-2xl">
+            {isDashboardProject ? <DashboardSkeleton /> : <LandingPageSkeleton />}
+          </div>
+        </div>
       ) : (
         /* RENDER PRE-GENERATION OR LOADING STATES */
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[var(--color-surface-950)]">
-          {/* PLANNING STATE */}
-          {status === "planning" && (
-            <div className="space-y-4">
-              <Cpu className="w-12 h-12 text-[var(--color-brand-400)] animate-spin mx-auto" />
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
-                  Planning Layout Strategy
-                </h3>
-                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
-                  {generationMessage || "Determining components, sections, and color palettes..."}
-                </p>
+        <div className="flex-1 flex flex-col md:flex-row h-full min-h-[450px] bg-[var(--color-surface-950)] divide-y md:divide-y-0 md:divide-x divide-white/5">
+          {/* Left Panel: Checklist */}
+          {status !== "idle" && status !== "error" ? (
+            <div className="w-full md:w-[320px] shrink-0 p-6 flex flex-col justify-between bg-[var(--color-surface-950)] text-left">
+              <div className="space-y-6">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-5 h-5 text-[var(--color-brand-400)] animate-pulse animate-spin-slow" />
+                  <h3 className="text-sm font-semibold text-white">AI Assembly Pipeline</h3>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  {checklistSteps.map((step, index) => {
+                    const stepState = getStepStatus(step.key);
+                    return (
+                      <motion.div
+                        key={step.key}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="flex items-start gap-3"
+                      >
+                        <div className="mt-0.5 shrink-0">
+                          {stepState === "completed" && (
+                            <motion.div
+                              initial={{ scale: 0.8 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            >
+                              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                            </motion.div>
+                          )}
+                          {stepState === "active" && (
+                            <Loader2 className="w-4 h-4 text-[var(--color-brand-400)] animate-spin" />
+                          )}
+                          {stepState === "failed" && (
+                            <AlertTriangle className="w-4 h-4 text-rose-500" />
+                          )}
+                          {stepState === "pending" && (
+                            <Circle className="w-4 h-4 text-neutral-700" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className={cn(
+                            "text-xs font-medium transition-colors duration-200",
+                            stepState === "completed" && "text-neutral-400",
+                            stepState === "active" && "text-white font-semibold",
+                            stepState === "pending" && "text-neutral-600",
+                            stepState === "failed" && "text-rose-400"
+                          )}>
+                            {step.label}
+                          </p>
+                          {stepState === "active" && (
+                            <p className="text-[10px] text-[var(--color-muted-fg)] mt-0.5 animate-pulse truncate">
+                              {generationMessage || "Executing tasks..."}
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          )}
-
-          {/* GENERATING CHUNKS (BEFORE HTML STARTS YIELDING) */}
-          {status === "generating" && !html && (
-            <div className="space-y-4">
-              <Loader2 className="w-12 h-12 text-[var(--color-brand-400)] animate-spin mx-auto" />
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
-                  Starting Generator
-                </h3>
-                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
-                  {generationMessage || "Spinning up generative engine..."}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* VALIDATING STATE */}
-          {status === "validating" && (
-            <div className="space-y-4">
-              <ShieldAlert className="w-12 h-12 text-[var(--color-brand-400)] animate-bounce mx-auto" />
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
-                  Validating Web markup
-                </h3>
-                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
-                  {generationMessage || "Running HTML validator and auto-repair services..."}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* SAVING STATE */}
-          {status === "saving" && (
-            <div className="space-y-4">
-              <Database className="w-12 h-12 text-[var(--color-brand-400)] animate-pulse mx-auto" />
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
-                  Persisting Generation
-                </h3>
-                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
-                  {generationMessage || "Saving successfully validated site to database..."}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* ERROR STATE */}
-          {status === "error" && (
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center bg-rose-500/12 text-rose-500 mx-auto">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--color-surface-100)] mb-1">
-                  Generation Failed
-                </h3>
-                <p className="text-xs text-rose-400 max-w-md mx-auto font-mono break-words">
+          ) : status === "error" ? (
+            <div className="w-full md:w-[320px] shrink-0 p-6 flex flex-col justify-between bg-[var(--color-surface-950)] text-left">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-rose-500">
+                  <AlertTriangle className="w-5 h-5" />
+                  <h3 className="text-sm font-semibold">Assembly Failed</h3>
+                </div>
+                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-400 font-mono break-all leading-relaxed">
                   {errorMsg || "An unexpected error occurred during generation."}
-                </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* IDLE STATE LEFT PANEL */
+            <div className="w-full md:w-[320px] shrink-0 p-6 flex flex-col justify-center bg-[var(--color-surface-950)] text-left border-r border-white/5">
+              <div className="space-y-4">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-brand-500)]/10 text-[var(--color-brand-400)]">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Preview Workspace</h3>
+                  <p className="text-xs text-[var(--color-muted-fg)] mt-1.5 leading-relaxed">
+                    Submit a prompt on the left to watch the AI plan, structure, select components, and build your application live.
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
-          {/* IDLE / EMPTY STATE */}
-          {status === "idle" && (
-            <div className="space-y-4">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-brand-500/12"
-              >
-                <Sparkles
-                  className="w-7 h-7"
-                  style={{ color: "var(--color-brand-400)" }}
-                />
+          {/* Right Panel: Skeleton View / Showcase */}
+          <div className="flex-1 bg-[#09090b] relative overflow-hidden flex items-center justify-center p-6 min-h-[350px]">
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+                 style={{
+                   backgroundImage: "radial-gradient(var(--color-surface-400) 1px, transparent 1px)",
+                   backgroundSize: "20px 20px"
+                 }}
+            />
+            {status !== "idle" && status !== "error" ? (
+              <div className="w-full h-full max-w-[95%] max-h-[95%] border border-white/5 rounded-xl bg-[#0e0e11] overflow-hidden shadow-2xl transition-all duration-300">
+                {isDashboardProject ? <DashboardSkeleton /> : <LandingPageSkeleton />}
               </div>
-              <div>
-                <p className="text-[var(--color-surface-200)] font-semibold mb-1">
-                  Preview Ready
-                </p>
-                <p className="text-xs text-[var(--color-muted-fg)] max-w-xs mx-auto">
-                  Submit a prompt on the left to stream a website generator live, or select a recent project to load.
-                </p>
+            ) : (
+              /* Simple Mock Layout Preview on Idle */
+              <div className="w-full h-full max-w-[95%] max-h-[95%] border border-white/5 rounded-xl bg-[#0e0e11] overflow-hidden opacity-30 shadow-2xl">
+                <LandingPageSkeleton />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 

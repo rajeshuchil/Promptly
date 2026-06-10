@@ -14,6 +14,7 @@ import { useGenerationStream } from "@/components/dashboard/hooks/use-generation
 import { useProjects } from "@/components/dashboard/hooks/use-projects";
 import { useUsage } from "@/components/dashboard/hooks/use-usage";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 /* ─── Quick Start Chips ───────────────────────────────────────────────────── */
 
@@ -42,6 +43,17 @@ export function BuildWorkspace() {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const searchParams = useSearchParams();
+
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setCoords({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
 
   const { usageStats, loadUsage } = useUsage();
   const { projects, loadProjects } = useProjects();
@@ -174,7 +186,6 @@ export function BuildWorkspace() {
     );
   }
 
-  // ── Build Home ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-full overflow-y-auto">
       <div className="max-w-4xl mx-auto px-4 py-12 md:py-20">
@@ -182,7 +193,7 @@ export function BuildWorkspace() {
         {/* ── Hero ─────────────────────────────────────────────────────────── */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-white/[0.03] text-[10px] font-medium text-[#6ee7b7] mb-6">
-            <Zap className="w-3 h-3" />
+            <Zap className="w-3 h-3 animate-bounce-subtle" />
             AI Pipeline: Planner → Generator → Validator → Preview
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-[1.15] mb-4">
@@ -195,10 +206,20 @@ export function BuildWorkspace() {
 
         {/* ── Prompt Box ───────────────────────────────────────────────────── */}
         <form onSubmit={handleGenerate} className="mb-6">
-          <div className={cn(
-            "relative rounded-xl border bg-[#111111] transition-all duration-200",
-            "border-white/10 focus-within:border-[#6ee7b7]/50 focus-within:shadow-[0_0_0_1px_rgba(110,231,183,0.15)]"
-          )}>
+          <div 
+            onMouseMove={handleMouseMove}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            className={cn(
+              "relative rounded-xl border bg-[#111111] transition-all duration-300 shadow-elevation-1",
+              isFocused
+                ? "border-[#6ee7b7]/60 shadow-[0_0_20px_-3px_rgba(110,231,183,0.15)] shadow-elevation-2"
+                : "border-white/10 hover:border-white/20"
+            )}
+            style={{
+              background: `radial-gradient(400px circle at ${coords.x}px ${coords.y}px, rgba(110,231,183,0.04), transparent 80%), #111111`
+            }}
+          >
             {/* Textarea */}
             <textarea
               ref={textareaRef}
@@ -220,43 +241,91 @@ export function BuildWorkspace() {
             <div className="flex items-center justify-end px-3 pb-3 pt-1 border-t border-white/5">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-neutral-600 hidden sm:block">⌘↵ to generate</span>
-                <button
+                <motion.button
                   type="submit"
                   disabled={isGenerating || !prompt.trim()}
-                  className="group flex items-center gap-2 h-8 px-4 rounded-lg bg-[#6ee7b7] text-[#161616] text-xs font-semibold hover:bg-[#52dca6] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group flex items-center gap-2 h-8 px-4 rounded-lg bg-[#6ee7b7] text-[#161616] text-xs font-bold hover:bg-[#52dca6] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-elevation-1 hover:shadow-[0_0_12px_rgba(110,231,183,0.3)]"
                 >
                   {isGenerating ? (
                     <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
                   ) : (
                     <><Sparkles className="w-3.5 h-3.5" /> Generate <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" /></>
                   )}
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
         </form>
 
         {/* ── Quick Start Chips ─────────────────────────────────────────────── */}
-        <div className="flex flex-wrap gap-2 mb-14 justify-center">
+        <motion.div 
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.04 }
+            }
+          }}
+          initial="hidden"
+          animate="show"
+          className="flex flex-wrap gap-2 mb-14 justify-center"
+        >
           {QUICK_CHIPS.map((chip) => {
             const Icon = chip.icon;
             return (
-              <button
+              <motion.button
                 key={chip.label}
+                variants={{
+                  hidden: { opacity: 0, y: 8 },
+                  show: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ y: -2 }}
+                transition={{ type: "spring", stiffness: 450, damping: 26 }}
                 onClick={() => handleChip(chip.prompt)}
                 disabled={isGenerating}
-                className="flex items-center gap-1.5 h-7 px-3 rounded-full border border-white/10 bg-white/[0.03] text-[11px] text-neutral-400 hover:text-white hover:border-white/20 hover:bg-white/[0.06] transition-all disabled:opacity-40"
+                className="flex items-center gap-1.5 h-7 px-3 rounded-full border border-white/10 bg-[#141416] text-[11px] text-neutral-400 hover:text-white hover:border-[#6ee7b7]/30 hover:bg-[#18181b] transition-colors duration-150 disabled:opacity-40 cursor-pointer"
               >
-                <Icon className="w-3 h-3" />
+                <Icon className="w-3 h-3 text-[#6ee7b7]" />
                 {chip.label}
-              </button>
+              </motion.button>
             );
           })}
+        </motion.div>
+
+        {/* ── Template Gallery (SECONDARY HIERARCHY) ───────────────────────── */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white">Start from a Template</h2>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {TEMPLATES.map((tmpl) => {
+              const Icon = tmpl.icon;
+              return (
+                <motion.button
+                  key={tmpl.id}
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 450, damping: 28 }}
+                  onClick={() => handleChip(`Generate a ${tmpl.label.toLowerCase()} — ${tmpl.desc}`)}
+                  disabled={isGenerating}
+                  className="group text-left rounded-xl border border-white/10 bg-[#111111] p-5 shadow-elevation-1 hover:border-[#6ee7b7]/30 hover:bg-[#161616] hover:shadow-elevation-2 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mb-3.5 group-hover:border-[#6ee7b7]/30 transition-colors">
+                    <Icon className="w-4 h-4 text-[#6ee7b7]" />
+                  </div>
+                  <p className="text-xs font-semibold text-white mb-1">{tmpl.label}</p>
+                  <p className="text-[10px] text-neutral-400 leading-normal">{tmpl.desc}</p>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* ── Recent Projects ───────────────────────────────────────────────── */}
+        {/* ── Recent Projects (TERTIARY HIERARCHY) ─────────────────────────── */}
         {recentProjects.length > 0 && (
-          <div className="mb-12">
+          <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-white">Recent Projects</h2>
               <Link
@@ -269,13 +338,15 @@ export function BuildWorkspace() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {recentProjects.map((project) => (
-                <button
+                <motion.button
                   key={project.id}
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 450, damping: 28 }}
                   onClick={() => handleSelectProject(project.id)}
-                  className="group text-left rounded-lg border border-white/10 bg-[#111111] p-4 hover:border-white/20 hover:bg-[#161616] transition-all"
+                  className="group text-left rounded-xl border border-white/10 bg-[#111111] p-4 shadow-elevation-1 hover:border-white/20 hover:bg-[#161616] hover:shadow-elevation-2 transition-all duration-200 cursor-pointer"
                 >
                   {/* Mini preview thumbnail */}
-                  <div className="w-full h-24 rounded-md bg-[#1a1a1a] border border-white/5 mb-3 overflow-hidden flex items-center justify-center">
+                  <div className="w-full h-24 rounded-lg bg-[#161618] border border-white/5 mb-3.5 overflow-hidden flex items-center justify-center relative">
                     {project.generatedHtml ? (
                       <iframe
                         srcDoc={project.generatedHtml}
@@ -292,47 +363,20 @@ export function BuildWorkspace() {
                       <p className="text-xs font-semibold text-white truncate group-hover:text-[#6ee7b7] transition-colors">
                         {project.name}
                       </p>
-                      <p className="text-[10px] text-neutral-500 mt-0.5 flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5" />
+                      <p className="text-[10px] text-neutral-400 mt-1 flex items-center gap-1.5">
+                        <Clock className="w-3 h-3" />
                         {new Date(project.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full border border-green-500/20 bg-green-500/10 text-green-400 font-medium">
+                    <span className="shrink-0 text-[9px] px-2 py-0.5 rounded-full border border-green-500/20 bg-green-500/10 text-green-400 font-medium">
                       Live
                     </span>
                   </div>
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
         )}
-
-        {/* ── Template Gallery ──────────────────────────────────────────────── */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">Start from a Template</h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {TEMPLATES.map((tmpl) => {
-              const Icon = tmpl.icon;
-              return (
-                <button
-                  key={tmpl.id}
-                  onClick={() => handleChip(`Generate a ${tmpl.label.toLowerCase()} — ${tmpl.desc}`)}
-                  disabled={isGenerating}
-                  className="group text-left rounded-lg border border-white/10 bg-[#111111] p-4 hover:border-[#6ee7b7]/30 hover:bg-[#161616] transition-all"
-                >
-                  <div className="w-8 h-8 rounded-md bg-white/5 border border-white/10 flex items-center justify-center mb-3 group-hover:border-[#6ee7b7]/30 transition-colors">
-                    <Icon className="w-4 h-4 text-[#6ee7b7]" />
-                  </div>
-                  <p className="text-xs font-semibold text-white mb-0.5">{tmpl.label}</p>
-                  <p className="text-[10px] text-neutral-500">{tmpl.desc}</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
       </div>
     </div>

@@ -134,20 +134,37 @@ export function ProjectsClient() {
           <p className="text-xs text-[var(--color-muted-fg)]">Loading your generated websites...</p>
         </div>
       ) : filteredProjects.length === 0 ? (
-        <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-8 text-center flex flex-col items-center justify-center">
-          <Globe className="w-12 h-12 text-[var(--color-surface-650)] mb-3" />
-          <h3 className="text-sm font-bold text-white">No projects found</h3>
-          <p className="text-xs text-[var(--color-muted-fg)] mt-1 max-w-sm">
+        <div className="border border-white/5 bg-[#111111]/60 backdrop-blur-md rounded-2xl p-12 text-center flex flex-col items-center justify-center max-w-lg mx-auto shadow-elevation-1 my-8">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--color-brand-500)]/10 text-[var(--color-brand-400)] mb-4 border border-[var(--color-brand-500)]/20 animate-pulse">
+            <Globe className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-semibold text-white">No Projects Found</h3>
+          <p className="text-xs text-[var(--color-muted-fg)] mt-2 max-w-xs leading-relaxed">
             {searchQuery || statusFilter !== "all"
-              ? "Try adjusting your search filters."
-              : "You haven't generated any websites yet. Go to the dashboard to begin!"}
+              ? "No websites match your active search terms or filter selection. Try resetting them."
+              : "Create your first web app with FastApp. Enter a description and watch the compiler build it."}
           </p>
-          {!searchQuery && statusFilter === "all" && (
-            <Link href="/dashboard" className="mt-4">
-              <Button size="sm" className="text-xs"><Sparkles className="w-3.5 h-3.5 mr-1.5" />Generate Website</Button>
+          {searchQuery || statusFilter !== "all" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-5 h-8 text-xs border-white/10 hover:bg-white/5 text-white"
+              onClick={() => {
+                setSearchQuery("");
+                setStatusFilter("all");
+              }}
+            >
+              Reset Filters
+            </Button>
+          ) : (
+            <Link href="/dashboard" className="mt-5">
+              <Button size="sm" className="h-8 text-xs bg-[#6ee7b7] text-[#161616] font-bold hover:bg-[#52dca6] gap-1.5 shadow-elevation-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                Generate Website
+              </Button>
             </Link>
           )}
-        </Card>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => {

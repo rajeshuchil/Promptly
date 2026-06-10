@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { DeviceMode } from "./types";
 import { PageRenderer } from "../builder/PageRenderer";
+import { motion } from "framer-motion";
 
 interface PreviewFrameProps {
   html: string;
@@ -93,8 +94,10 @@ export function PreviewFrame({ html, plan, deviceMode }: PreviewFrameProps) {
         }}
       />
 
-      <div
-        className="transition-all duration-300 ease-in-out flex flex-col items-center justify-center overflow-hidden"
+      <motion.div
+        layout
+        transition={{ type: "spring", stiffness: 350, damping: 28 }}
+        className="flex flex-col items-center justify-center overflow-hidden border border-white/5"
         style={frameStyles[deviceMode]}
       >
         {deviceMode === "mobile" && (
@@ -118,7 +121,7 @@ export function PreviewFrame({ html, plan, deviceMode }: PreviewFrameProps) {
           <PageRenderer spec={plan} />,
           mountNode
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -58,7 +58,12 @@ export function DeploymentHistory({
             ))}
           </div>
         ) : (
-          <div className="text-center py-6 text-[var(--color-muted-fg)] border border-dashed border-[var(--color-border)] rounded-md">No past deployments recorded. Click 'Publish to Production' to deploy.</div>
+          <div className="text-center py-8 px-4 text-[var(--color-muted-fg)] border border-dashed border-[var(--color-border)] rounded-xl bg-black/15 flex flex-col items-center justify-center space-y-2.5">
+            <span className="text-[var(--color-surface-650)] text-xs font-semibold">No Deployment Runs Yet</span>
+            <p className="text-[10px] text-[var(--color-surface-500)] max-w-[200px] leading-relaxed">
+              This project has not been published to a production server yet. Use the deploy tool to publish it.
+            </p>
+          </div>
         )}
       </div>
     </div>
