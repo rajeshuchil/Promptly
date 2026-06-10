@@ -15,6 +15,7 @@ import { useProjects } from "@/components/dashboard/hooks/use-projects";
 import { useUsage } from "@/components/dashboard/hooks/use-usage";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Spotlight } from "@/components/ui/spotlight";
 
 /* ─── Quick Start Chips ───────────────────────────────────────────────────── */
 
@@ -187,120 +188,145 @@ export function BuildWorkspace() {
   }
 
   return (
-    <div className="min-h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-4 py-12 md:py-20">
+    <div className="min-h-full overflow-y-auto bg-[#030303]">
+      {/* ── Spotlight Prompt Area ────────────────────────────────────────── */}
+      <div className="relative w-full overflow-hidden border-b border-white/5 bg-[#070709] py-16 md:py-24">
+        {/* Subtle grid pattern background */}
+        <div
+          className="pointer-events-none absolute inset-0 select-none opacity-20"
+          style={{
+            backgroundImage: "radial-gradient(var(--color-surface-600) 1px, transparent 1px)",
+            backgroundSize: "24px 24px"
+          }}
+        />
+        {/* Soft emerald spotlight effect centered behind the prompt */}
+        <Spotlight
+          className="-top-40 left-1/2 -translate-x-1/2 w-[140%] h-[150%] md:-top-80 md:w-[100%] opacity-40"
+          fill="rgba(110, 231, 183, 0.12)"
+        />
 
-        {/* ── Hero ─────────────────────────────────────────────────────────── */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-white/[0.03] text-[10px] font-medium text-[#6ee7b7] mb-6">
-            <Zap className="w-3 h-3 animate-bounce-subtle" />
-            AI Pipeline: Planner → Generator → Validator → Preview
+        <div className="max-w-4xl mx-auto px-4 relative z-10">
+          {/* ── Hero ─────────────────────────────────────────────────────────── */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-white/[0.03] text-[10px] font-medium text-[#6ee7b7] mb-6">
+              <Zap className="w-3 h-3 animate-bounce-subtle" />
+              AI Pipeline: Planner → Generator → Validator → Preview
+            </div>
+            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-[1.15] mb-4">
+              What page would you like to generate today?
+            </h1>
+            <p className="text-sm md:text-base text-neutral-400 max-w-xl mx-auto leading-relaxed">
+              Describe the page you want to generate and FastApp will plan, generate, validate, and preview it.
+            </p>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-[1.15] mb-4">
-            What page would you like to generate today?
-          </h1>
-          <p className="text-sm md:text-base text-neutral-400 max-w-xl mx-auto leading-relaxed">
-            Describe the page you want to generate and FastApp will plan, generate, validate, and preview it.
-          </p>
-        </div>
 
-        {/* ── Prompt Box ───────────────────────────────────────────────────── */}
-        <form onSubmit={handleGenerate} className="mb-6">
-          <div 
-            onMouseMove={handleMouseMove}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className={cn(
-              "relative rounded-xl border bg-[#111111] transition-all duration-300 shadow-elevation-1",
-              isFocused
-                ? "border-[#6ee7b7]/60 shadow-[0_0_20px_-3px_rgba(110,231,183,0.15)] shadow-elevation-2"
-                : "border-white/10 hover:border-white/20"
-            )}
-            style={{
-              background: `radial-gradient(400px circle at ${coords.x}px ${coords.y}px, rgba(110,231,183,0.04), transparent 80%), #111111`
-            }}
-          >
-            {/* Textarea */}
-            <textarea
-              ref={textareaRef}
-              id="build-prompt"
-              rows={3}
-              className="w-full bg-transparent px-5 pt-4 pb-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none resize-none leading-relaxed"
-              placeholder='e.g. "Generate a modern SaaS landing page with hero, features bento grid, and pricing..."'
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              disabled={isGenerating}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                  handleGenerate(e as any);
-                }
+          {/* ── Prompt Box ───────────────────────────────────────────────────── */}
+          <form onSubmit={handleGenerate} className="mb-6">
+            <div 
+              onMouseMove={handleMouseMove}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              className={cn(
+                "relative rounded-2xl border transition-all duration-300 shadow-elevation-2 bg-[#0c0c0e]/90 backdrop-blur-md overflow-hidden",
+                isGenerating
+                  ? "border-[#6ee7b7]/60 shadow-[0_0_30px_rgba(110,231,183,0.25)] animate-pulse"
+                  : isFocused
+                    ? "border-[#6ee7b7] shadow-[0_0_25px_rgba(110,231,183,0.2)]"
+                    : "border-white/10 hover:border-white/20 hover:shadow-elevation-3"
+              )}
+              style={{
+                background: `radial-gradient(400px circle at ${coords.x}px ${coords.y}px, rgba(110,231,183,0.04), transparent 80%), rgba(12, 12, 14, 0.9)`
               }}
-            />
+            >
+              {/* Textarea */}
+              <textarea
+                ref={textareaRef}
+                id="build-prompt"
+                rows={3}
+                className="w-full bg-transparent px-6 pt-5 pb-4 text-base text-white placeholder:text-neutral-500 focus:outline-none resize-none leading-relaxed font-sans"
+                placeholder='e.g. "Generate a modern SaaS landing page with hero, features bento grid, and pricing..."'
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                disabled={isGenerating}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                    handleGenerate(e as any);
+                  }
+                }}
+              />
 
-            {/* Bottom toolbar */}
-            <div className="flex items-center justify-end px-3 pb-3 pt-1 border-t border-white/5">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-neutral-600 hidden sm:block">⌘↵ to generate</span>
-                <motion.button
-                  type="submit"
-                  disabled={isGenerating || !prompt.trim()}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group flex items-center gap-2 h-8 px-4 rounded-lg bg-[#6ee7b7] text-[#161616] text-xs font-bold hover:bg-[#52dca6] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-elevation-1 hover:shadow-[0_0_12px_rgba(110,231,183,0.3)]"
-                >
-                  {isGenerating ? (
-                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
-                  ) : (
-                    <><Sparkles className="w-3.5 h-3.5" /> Generate <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" /></>
-                  )}
-                </motion.button>
+              {/* Bottom toolbar */}
+              <div className="flex items-center justify-between px-6 pb-4 pt-2 border-t border-white/5">
+                <div className="flex items-center gap-2 text-[10px] text-neutral-500 font-medium">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Planner v2 Active</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] text-neutral-600 hidden sm:block font-mono">⌘↵ to generate</span>
+                  <motion.button
+                    type="submit"
+                    disabled={isGenerating || !prompt.trim()}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group flex items-center gap-2 h-9 px-5 rounded-full bg-[#6ee7b7] text-[#161616] text-xs font-bold hover:bg-[#52dca6] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer shadow-[0_0_15px_rgba(110,231,183,0.25)] hover:shadow-[0_0_20px_rgba(110,231,183,0.4)]"
+                  >
+                    {isGenerating ? (
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating Website…</>
+                    ) : (
+                      <><Sparkles className="w-3.5 h-3.5" /> Generate App <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" /></>
+                    )}
+                  </motion.button>
+                </div>
               </div>
             </div>
-          </div>
-        </form>
+          </form>
 
-        {/* ── Quick Start Chips ─────────────────────────────────────────────── */}
-        <motion.div 
-          variants={{
-            hidden: { opacity: 0 },
-            show: {
-              opacity: 1,
-              transition: { staggerChildren: 0.04 }
-            }
-          }}
-          initial="hidden"
-          animate="show"
-          className="flex flex-wrap gap-2 mb-14 justify-center"
-        >
-          {QUICK_CHIPS.map((chip) => {
-            const Icon = chip.icon;
-            return (
-              <motion.button
-                key={chip.label}
-                variants={{
-                  hidden: { opacity: 0, y: 8 },
-                  show: { opacity: 1, y: 0 }
-                }}
-                whileHover={{ y: -2 }}
-                transition={{ type: "spring", stiffness: 450, damping: 26 }}
-                onClick={() => handleChip(chip.prompt)}
-                disabled={isGenerating}
-                className="flex items-center gap-1.5 h-7 px-3 rounded-full border border-white/10 bg-[#141416] text-[11px] text-neutral-400 hover:text-white hover:border-[#6ee7b7]/30 hover:bg-[#18181b] transition-colors duration-150 disabled:opacity-40 cursor-pointer"
-              >
-                <Icon className="w-3 h-3 text-[#6ee7b7]" />
-                {chip.label}
-              </motion.button>
-            );
-          })}
-        </motion.div>
+          {/* ── Quick Start Chips ─────────────────────────────────────────────── */}
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.04 }
+              }
+            }}
+            initial="hidden"
+            animate="show"
+            className="flex flex-wrap gap-2 justify-center"
+          >
+            {QUICK_CHIPS.map((chip) => {
+              const Icon = chip.icon;
+              return (
+                <motion.button
+                  key={chip.label}
+                  variants={{
+                    hidden: { opacity: 0, y: 8 },
+                    show: { opacity: 1, y: 0 }
+                  }}
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 450, damping: 26 }}
+                  onClick={() => handleChip(chip.prompt)}
+                  disabled={isGenerating}
+                  className="flex items-center gap-1.5 h-7.5 px-3.5 rounded-full border border-white/5 bg-[#141416]/60 text-[11px] text-neutral-400 hover:text-white hover:border-[#6ee7b7]/30 hover:bg-[#18181b] backdrop-blur-sm transition-all duration-150 disabled:opacity-40 cursor-pointer"
+                >
+                  <Icon className="w-3 h-3 text-[#6ee7b7]" />
+                  {chip.label}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        </div>
+      </div>
 
+      {/* ── Lower Gallery and Projects Area ──────────────────────────────── */}
+      <div className="max-w-4xl mx-auto px-4 py-16">
         {/* ── Template Gallery (SECONDARY HIERARCHY) ───────────────────────── */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-14">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="text-sm font-semibold text-white">Start from a Template</h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {TEMPLATES.map((tmpl) => {
               const Icon = tmpl.icon;
               return (
@@ -326,7 +352,7 @@ export function BuildWorkspace() {
         {/* ── Recent Projects (TERTIARY HIERARCHY) ─────────────────────────── */}
         {recentProjects.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-sm font-semibold text-white">Recent Projects</h2>
               <Link
                 href="/projects"
@@ -336,7 +362,7 @@ export function BuildWorkspace() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentProjects.map((project) => (
                 <motion.button
                   key={project.id}
@@ -377,7 +403,6 @@ export function BuildWorkspace() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

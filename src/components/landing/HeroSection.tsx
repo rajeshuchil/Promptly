@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, Wand2, Play, Code2, ArrowRight, CheckCircle, Terminal } from "lucide-react";
+import Text3DFlip from "@/components/ui/text-3d-flip";
 
 export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [promptText, setPromptText] = useState("");
@@ -87,9 +88,14 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
       </div>
 
       {/* Main Headline */}
-      <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] max-w-1xl mb-8 text-white">
+      <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.15] max-w-none mb-8 text-white">
         Generate Production-Ready Pages<br />
-        <span className="text-[#6ee7b7]">From a Prompt</span>
+        <Text3DFlip
+          textClassName="text-[#6ee7b7]"
+          flipTextClassName="text-white"
+        >
+          From a Prompt
+        </Text3DFlip>
       </h1>
 
       {/* Value Proposition */}
