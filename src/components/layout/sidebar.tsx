@@ -34,7 +34,7 @@ const secondaryNavItems = [
 
 function SidebarLogo() {
   return (
-    <div className="flex items-center gap-2.5 px-3 py-5">
+    <Link href="/" className="flex items-center gap-2.5 px-3 py-5 cursor-pointer hover:opacity-90 transition-opacity">
       {/* Icon mark */}
       <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#6ee7b7]">
         <Zap className="w-4 h-4 text-[#161616]" strokeWidth={2.5} />
@@ -43,7 +43,7 @@ function SidebarLogo() {
       <span className="text-base font-bold tracking-tight text-white">
         FastApp
       </span>
-    </div>
+    </Link>
   );
 }
 
