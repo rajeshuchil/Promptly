@@ -90,7 +90,7 @@ export function useGenerationStream({
   });
 
   const generate = useCallback(
-    async (prompt: string, style: string, templateId?: string) => {
+    async (prompt: string, style?: string, templateId?: string) => {
       setIsGenerating(true);
       setGenerationError(null);
       setActiveHtml("");

@@ -28,20 +28,6 @@ const QUICK_CHIPS = [
   { label: "Cybersecurity",        icon: Shield,          prompt: "Generate a cybersecurity page dashboard with threat detection, logs, and security scores" },
 ];
 
-/* ─── Style Options ───────────────────────────────────────────────────────── */
-
-const STYLES = [
-  { value: "modern-saas",     label: "Modern SaaS" },
-  { value: "minimal",         label: "Minimalist" },
-  { value: "glassmorphism",   label: "Glassmorphism" },
-  { value: "enterprise",      label: "Enterprise" },
-  { value: "startup",         label: "Startup" },
-] as const;
-
-type StyleValue = typeof STYLES[number]["value"];
-
-/* ─── Template Icons ──────────────────────────────────────────────────────── */
-
 const TEMPLATES = [
   { id: "saas-dashboard",   label: "SaaS Dashboard",      icon: LayoutDashboard, desc: "Metrics, charts, and sidebar" },
   { id: "saas-landing",     label: "AI Startup Landing",  icon: Sparkles,        desc: "Landing with bento grid" },
@@ -50,11 +36,8 @@ const TEMPLATES = [
   { id: "login-page",       label: "Login Page",          icon: Shield,          desc: "Secure login form" },
 ];
 
-/* ─── Build Workspace ─────────────────────────────────────────────────────── */
-
 export function BuildWorkspace() {
   const [prompt, setPrompt] = useState("");
-  const [style, setStyle] = useState<StyleValue>("modern-saas");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -112,7 +95,7 @@ export function BuildWorkspace() {
     if (!prompt.trim() || isGenerating) return;
     setIsPreviewMode(false);
     setSelectedProjectId(null);
-    await generate(prompt, style, undefined);
+    await generate(prompt, undefined, undefined);
     setPrompt("");
   };
 
@@ -234,21 +217,7 @@ export function BuildWorkspace() {
             />
 
             {/* Bottom toolbar */}
-            <div className="flex items-center justify-between px-3 pb-3 pt-1 border-t border-white/5">
-              {/* Style select */}
-              <select
-                className="bg-transparent border border-white/10 rounded-md px-2.5 py-1 text-[11px] text-neutral-400 focus:outline-none focus:border-[#6ee7b7]/40 cursor-pointer"
-                value={style}
-                onChange={(e) => setStyle(e.target.value as StyleValue)}
-                disabled={isGenerating}
-              >
-                {STYLES.map((s) => (
-                  <option key={s.value} value={s.value} className="bg-[#111111] text-white">
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-
+            <div className="flex items-center justify-end px-3 pb-3 pt-1 border-t border-white/5">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-neutral-600 hidden sm:block">⌘↵ to generate</span>
                 <button

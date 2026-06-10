@@ -15,7 +15,6 @@ import { useGenerationStream } from "./hooks/use-generation-stream";
 
 export function DashboardClient() {
   const [prompt, setPrompt] = useState("");
-  const [style, setStyle] = useState<"standard" | "minimal" | "rich" | "modern-saas" | "glassmorphism" | "enterprise" | "startup">("modern-saas");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -95,7 +94,7 @@ export function DashboardClient() {
     e.preventDefault();
     if (!prompt.trim() || isGenerating) return;
     setSelectedProjectId(null);
-    await generate(prompt, style, selectedTemplateId ?? undefined);
+    await generate(prompt, undefined, selectedTemplateId ?? undefined);
     setPrompt("");
     setSelectedTemplateId(null);
   };
@@ -187,24 +186,7 @@ export function DashboardClient() {
                   disabled={isGenerating}
                 />
 
-                <div className="flex items-center justify-between gap-4">
-                  <label htmlFor="style-select" className="text-xs font-medium text-[var(--color-muted-fg)]">
-                    Design Theme
-                  </label>
-                  <select
-                    id="style-select"
-                    className="bg-[var(--color-surface-950)] border border-[var(--color-border)] rounded-[var(--radius-md)] px-2.5 py-1 text-xs text-[var(--color-surface-100)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand-500)]"
-                    value={style}
-                    onChange={(e) => setStyle(e.target.value as any)}
-                    disabled={isGenerating}
-                  >
-                    <option value="modern-saas">Modern SaaS</option>
-                    <option value="minimal">Minimalist Clean</option>
-                    <option value="glassmorphism">Glassmorphism</option>
-                    <option value="enterprise">Enterprise</option>
-                    <option value="startup">Startup</option>
-                  </select>
-                </div>
+
 
                 <Button
                   type="submit"
