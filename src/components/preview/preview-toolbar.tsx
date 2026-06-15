@@ -15,6 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import JSZip from "jszip";
 
 interface PreviewToolbarProps {
   deviceMode: DeviceMode;
@@ -45,7 +46,7 @@ export function PreviewToolbar({
   const handleCopy = async () => {
     try {
       const textToCopy = plan ? JSON.stringify(plan, null, 2) : html;
-      await navigator.clipboard.writeText(textToCopy);
+      await navigator.clipboard.writeText(textToCopy ?? "");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -54,20 +55,44 @@ export function PreviewToolbar({
   };
 
   const handleFullscreen = () => {
-    const previewWindow = window.open("", "_blank");
-    if (previewWindow) {
-      previewWindow.document.write(html);
-      previewWindow.document.close();
+    try {
+      const iframe = document.querySelector("iframe[title='FastApp Site Preview']") as HTMLIFrameElement;
+      const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
+      const renderedHtml = iframeDoc ? iframeDoc.documentElement.outerHTML : html;
+
+      const previewWindow = window.open("", "_blank");
+      if (previewWindow) {
+        previewWindow.document.write(renderedHtml || "");
+        previewWindow.document.close();
+      }
+    } catch (err) {
+      console.error("Failed to open fullscreen: ", err);
     }
   };
 
-  const handleExportZip = () => {
+  const handleExportZip = async () => {
     if (!projectId) return;
     setExportingZip(true);
     try {
+      const iframe = document.querySelector("iframe[title='FastApp Site Preview']") as HTMLIFrameElement;
+      const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
+      const renderedHtml = iframeDoc ? iframeDoc.documentElement.outerHTML : html;
+
+      const zip = new JSZip();
+      zip.file("index.html", renderedHtml || "");
+      zip.folder("assets");
+      zip.file("README.md", `# FastApp Project Export\n\nGenerated with FastApp.\n\nTo view your project, open index.html in a web browser.\n`);
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+
       const a = document.createElement("a");
-      a.href = `/api/projects/${projectId}/export?format=zip`;
+      a.href = url;
+      a.download = `fastapp-project-${projectId}.zip`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Failed to export Project: ", err);
     } finally {
@@ -131,17 +156,6 @@ export function PreviewToolbar({
           variant="ghost"
           size="sm"
           className="h-8 gap-1.5 text-xs text-[var(--color-surface-200)]"
-          onClick={onRefresh}
-          title="Refresh Preview"
-        >
-          <RotateCw className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Refresh</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1.5 text-xs text-[var(--color-surface-200)]"
           onClick={handleFullscreen}
           title="Open in New Window"
         >
@@ -159,7 +173,7 @@ export function PreviewToolbar({
           {copied ? (
             <>
               <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400">Page specification copied to clipboard</span>
+              <span className="text-emerald-400 hidden md:inline">Copied!</span>
             </>
           ) : (
             <>

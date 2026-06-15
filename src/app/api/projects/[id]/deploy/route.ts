@@ -45,6 +45,12 @@ export async function POST(request: Request, { params }: RouteContext) {
 
   try {
     const { id } = await params;
+
+    let reqHtml: string | undefined;
+    try {
+      const body = await request.json();
+      reqHtml = body?.html;
+    } catch {}
     
     const urlObj = new URL(request.url);
     const providerName = urlObj.searchParams.get("provider") || "mock";
@@ -70,7 +76,7 @@ export async function POST(request: Request, { params }: RouteContext) {
 
         try {
           const deploymentService = DeploymentService.getInstance();
-          const deployStream = deploymentService.deployStream(id, user.id, providerName);
+          const deployStream = deploymentService.deployStream(id, user.id, providerName, { html: reqHtml });
 
           for await (const step of deployStream) {
             sendEvent("progress", step);

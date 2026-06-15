@@ -132,8 +132,16 @@ export function PreviewPanel({
     setDeployStep({ name: "routing", status: "running", message: "Initiating deployment process..." });
 
     try {
+      const iframe = document.querySelector("iframe[title='FastApp Site Preview']") as HTMLIFrameElement;
+      const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
+      const renderedHtml = iframeDoc ? iframeDoc.documentElement.outerHTML : html;
+
       const res = await fetch(`/api/projects/${projectId}/deploy`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ html: renderedHtml }),
       });
 
       if (!res.ok) {

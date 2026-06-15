@@ -69,8 +69,18 @@ export class DeploymentService {
     const plan = project.generatedMeta?.plan;
     const isV2 = plan && Array.isArray((plan as any).sections) && (plan as any).sections.length > 0 && typeof (plan as any).sections[0] === 'object';
 
-    let htmlContent = project.generatedHtml || "";
-    if (isV2 && plan) {
+    let htmlContent = options?.html || project.generatedHtml || "";
+    if (options?.html && options.html !== project.generatedHtml) {
+      try {
+        await this.projectService.updateProject(projectId, userId, {
+          generatedHtml: options.html,
+        });
+      } catch (dbErr) {
+        console.error("Failed to update project generatedHtml on deploy:", dbErr);
+      }
+    }
+
+    if (!htmlContent && isV2 && plan) {
       const { compilePageSpecToHtml } = await import("@/lib/builder/compiler");
       htmlContent = await compilePageSpecToHtml(plan as any);
     }
