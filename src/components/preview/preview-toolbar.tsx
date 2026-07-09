@@ -13,9 +13,11 @@ import {
   FileDown,
   CloudLightning,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import JSZip from "jszip";
+import Link from "next/link";
 
 interface PreviewToolbarProps {
   deviceMode: DeviceMode;
@@ -196,19 +198,19 @@ export function PreviewToolbar({
           <span className="hidden md:inline">Export Project</span>
         </Button>
 
-        {/* Deploy Button */}
-        {projectId && onDeploy && (
-          <Button
-            variant="default"
-            size="sm"
-            className="h-8 gap-1.5 text-xs bg-[var(--color-brand-500)] hover:bg-[var(--color-brand-600)] text-white shadow-sm font-semibold transition-all duration-200"
-            onClick={onDeploy}
-            disabled={isDeploying}
-            title="Publish site to the web"
-          >
-            <CloudLightning className="w-3.5 h-3.5" />
-            <span>Deploy</span>
-          </Button>
+        {/* Edit with AI Button */}
+        {projectId && (
+          <Link href={`/projects/${projectId}?tab=edit`}>
+            <Button
+              variant="default"
+              size="sm"
+              className="h-8 gap-1.5 text-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-sm font-semibold transition-all duration-200"
+              title="Edit this page using AI"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
+              <span>Edit with AI</span>
+            </Button>
+          </Link>
         )}
       </div>
     </div>

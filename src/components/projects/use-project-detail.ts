@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDeployStream } from "@/hooks/use-deploy-stream";
 import type { Project } from "@/lib/projects/types";
@@ -13,6 +13,16 @@ export function useProjectDetail({ initialProject }: UseProjectDetailProps) {
   const router = useRouter();
   const [project, setProject] = useState<Project>(initialProject);
   const [activeTab, setActiveTab] = useState<"prompt" | "plan" | "html" | "meta" | "deployments" | "edit" | "history" | "timeline" >("prompt");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      if (tab && ["prompt", "plan", "html", "meta", "deployments", "edit", "history", "timeline"].includes(tab)) {
+        setActiveTab(tab as any);
+      }
+    }
+  }, []);
   const [copied, setCopied] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(project.name);
