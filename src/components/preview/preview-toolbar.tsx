@@ -202,12 +202,12 @@ export function PreviewToolbar({
         {projectId && (
           <Link href={`/projects/${projectId}?tab=edit`}>
             <Button
-              variant="default"
+              variant="outline"
               size="sm"
-              className="h-8 gap-1.5 text-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-sm font-semibold transition-all duration-200"
+              className="h-8 gap-1.5 text-xs text-violet-400 border-violet-500/30 hover:border-violet-500/60 hover:text-violet-300 hover:bg-violet-500/10 shadow-sm font-semibold transition-all duration-200"
               title="Edit this page using AI"
             >
-              <Sparkles className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
+              <Sparkles className="w-3.5 h-3.5 text-violet-400 fill-violet-400/20" />
               <span>Edit with AI</span>
             </Button>
           </Link>
