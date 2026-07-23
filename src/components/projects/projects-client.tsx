@@ -12,6 +12,85 @@ import { Card } from "@/components/ui/card";
 import type { Project } from "@/lib/projects/types";
 import { useProjectActions } from "@/hooks/use-project-actions";
 
+function ProjectThumbnail({ project }: { project: Project }) {
+  const hash = project.name.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+  const gradients = [
+    "from-indigo-600/20 via-purple-600/10 to-transparent",
+    "from-emerald-600/20 via-teal-600/10 to-transparent",
+    "from-violet-600/20 via-pink-600/10 to-transparent",
+    "from-blue-600/20 via-sky-600/10 to-transparent",
+    "from-amber-600/20 via-orange-600/10 to-transparent",
+  ];
+  const gradient = gradients[hash % gradients.length];
+  const layoutStyle = hash % 3;
+
+  return (
+    <div className="h-28 bg-[#09090b] relative border-b border-white/5 overflow-hidden flex items-center justify-center group-hover:bg-[#060608] transition-colors duration-300">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:8px_8px]" />
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-80`} />
+
+      <div className="w-4/5 h-4/5 rounded bg-black/45 border border-white/5 p-2 flex flex-col gap-1.5 shadow-2xl relative select-none transform translate-y-2 group-hover:translate-y-1 transition-all duration-300">
+        {layoutStyle === 0 ? (
+          <div className="flex gap-2 h-full">
+            <div className="w-6 shrink-0 h-full bg-white/5 border border-white/5 rounded-sm flex flex-col gap-1 p-0.5">
+              <div className="w-2.5 h-1 bg-white/30 rounded-full" />
+              <div className="w-4 h-0.5 bg-white/10 rounded-full" />
+              <div className="w-3 h-0.5 bg-white/10 rounded-full" />
+            </div>
+            <div className="flex-1 flex flex-col gap-1.5">
+              <div className="flex justify-between items-center">
+                <div className="w-8 h-1.5 bg-white/20 rounded-full" />
+                <div className="w-4 h-1.5 bg-white/10 rounded-full" />
+              </div>
+              <div className="grid grid-cols-2 gap-1 flex-1">
+                <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col justify-between">
+                  <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+                  <div className="w-6 h-1 bg-violet-400/40 rounded-full" />
+                </div>
+                <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col justify-between">
+                  <div className="w-3 h-0.5 bg-white/20 rounded-full" />
+                  <div className="w-5 h-1 bg-emerald-400/40 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : layoutStyle === 1 ? (
+          <div className="flex flex-col items-center justify-center text-center gap-1.5 h-full py-1">
+            <div className="w-4 h-1 bg-violet-400/30 rounded-full" />
+            <div className="w-16 h-2 bg-white/25 rounded-full" />
+            <div className="w-20 h-1 bg-white/10 rounded-full" />
+            <div className="w-16 h-1 bg-white/10 rounded-full" />
+            <div className="flex gap-1 mt-1">
+              <div className="w-6 h-2 bg-violet-500/40 rounded-sm border border-violet-500/20" />
+              <div className="w-6 h-2 bg-white/5 rounded-sm border border-white/10" />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 h-full justify-between">
+            <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+            <div className="grid grid-cols-3 gap-1.5 flex-1">
+              <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col gap-0.5 justify-center">
+                <div className="w-2.5 h-2.5 rounded bg-white/10" />
+                <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+              </div>
+              <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col gap-0.5 justify-center">
+                <div className="w-2.5 h-2.5 rounded bg-white/10" />
+                <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+              </div>
+              <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col gap-0.5 justify-center">
+                <div className="w-2.5 h-2.5 rounded bg-white/10" />
+                <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="absolute inset-0 bg-neutral-950/0 group-hover:bg-neutral-950/10 transition-colors duration-300" />
+    </div>
+  );
+}
+
 export function ProjectsClient() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -180,18 +259,22 @@ export function ProjectsClient() {
             return (
               <div
                 key={project.id}
-                className="relative group rounded-[var(--radius-lg)] border border-surface-500/30 bg-surface-800/40 backdrop-blur-md hover:bg-surface-800/65 hover:border-brand-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg animate-fade-in"
+                className="relative group rounded-2xl border border-white/5 bg-surface-900/40 backdrop-blur-md hover:bg-surface-800/50 hover:border-white/15 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg shadow-black/40 hover:shadow-xl hover:shadow-black/60 hover:-translate-y-0.5 animate-fade-in"
               >
                 <button
                   onClick={() => handleToggleFavorite(project.id, project.isFavorite, setProjects)}
-                  className="absolute top-3 right-3 p-1.5 rounded-full bg-black/40 border border-white/5 text-white/60 hover:text-amber-400 hover:bg-black/60 transition-all z-10"
+                  className="absolute top-3 right-3 p-1.5 rounded-full bg-black/55 border border-white/5 text-white/50 hover:text-amber-400 hover:bg-black/85 transition-all z-20 cursor-pointer"
                   title={project.isFavorite ? "Remove Favorite" : "Mark as Favorite"}
                 >
                   <Star className={`w-3.5 h-3.5 ${project.isFavorite ? "fill-amber-400 text-amber-400" : ""}`} />
                 </button>
 
-                <div className="p-5 space-y-3 flex-1">
-                  <div className="pr-8">
+                {/* 1. Thumbnail/Preview Area */}
+                <ProjectThumbnail project={project} />
+
+                {/* Content Area */}
+                <div className="p-4.5 space-y-3 flex-1 flex flex-col justify-between">
+                  <div className="space-y-1.5">
                     {isRenaming ? (
                       <div className="flex items-center gap-1.5">
                         <input
@@ -211,44 +294,53 @@ export function ProjectsClient() {
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 group/title">
-                        <h4 className="text-sm font-extrabold text-white truncate max-w-[180px]">{project.name}</h4>
-                        <button onClick={() => handleStartRename(project.id, project.name)} className="opacity-0 group-hover/title:opacity-100 p-0.5 rounded text-[var(--color-surface-450)] hover:text-white transition-opacity" title="Rename">
+                        <h4 className="text-xs font-bold text-white truncate max-w-[180px] tracking-tight">{project.name}</h4>
+                        <button onClick={() => handleStartRename(project.id, project.name)} className="opacity-0 group-hover/title:opacity-100 p-0.5 rounded text-neutral-500 hover:text-white transition-opacity cursor-pointer" title="Rename">
                           <Edit className="w-3 h-3" />
                         </button>
                       </div>
                     )}
+
+                    <p className="text-[10px] text-neutral-450 line-clamp-2 leading-relaxed min-h-[30px]">
+                      {project.prompt}
+                    </p>
                   </div>
 
-                  <p className="text-xs text-[var(--color-muted-fg)] line-clamp-3 leading-relaxed min-h-[50px]">{project.prompt}</p>
-
-                  <div className="flex flex-wrap gap-2 pt-1.5">
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold border uppercase tracking-wider ${getStatusBadgeColor(project.deploymentState)}`}>
+                  {/* Badges Row */}
+                  <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-white/5">
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${getStatusBadgeColor(project.deploymentState)}`}>
                       {project.deploymentState}
                     </span>
                     {project.aiModel && (
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border border-white/5 bg-white/5 text-white/70">
-                        <Cpu className="w-2.5 h-2.5" />{project.aiModel}
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border border-white/5 bg-white/5 text-neutral-400">
+                        <Cpu className="w-2.5 h-2.5 text-neutral-500" />
+                        {project.aiModel}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="px-5 py-3 border-t border-[var(--color-border)] bg-black/25 flex items-center justify-between text-[10px] text-[var(--color-surface-450)]">
-                  <span className="flex items-center gap-1 font-medium">
-                    <Calendar className="w-3 h-3 text-[var(--color-surface-500)]" />
+                {/* Footer / Meta Actions */}
+                <div className="px-4.5 py-3 border-t border-white/5 bg-black/15 flex items-center justify-between text-[9px] text-neutral-500">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Calendar className="w-3.5 h-3.5 text-neutral-600" />
                     {new Date(project.createdAt).toLocaleDateString()}
                   </span>
-                  <div className="flex items-center gap-1">
+                  
+                  {/* Action Menu */}
+                  <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                     <Link href={`/projects/${project.id}`} title="View detail">
-                      <button className="p-1 rounded text-white/70 hover:text-white hover:bg-white/10 transition-colors"><Eye className="w-3.5 h-3.5" /></button>
+                      <button className="p-1 rounded text-white/50 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
                     </Link>
-                    <button onClick={() => handleDuplicate(project.id)} disabled={isActioning} className="p-1 rounded text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Duplicate">
+                    <button onClick={() => handleDuplicate(project.id)} disabled={isActioning} className="p-1 rounded text-white/50 hover:text-white hover:bg-white/5 transition-colors cursor-pointer" title="Duplicate">
                       {isActioning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
-                    <button onClick={() => router.push(`/dashboard?regenerateId=${project.id}`)} className="p-1 rounded text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Regenerate">
+                    <button onClick={() => router.push(`/dashboard?regenerateId=${project.id}`)} className="p-1 rounded text-white/50 hover:text-white hover:bg-white/5 transition-colors cursor-pointer" title="Regenerate">
                       <RefreshCw className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => handleDelete(project.id, project.name)} disabled={isActioning} className="p-1 rounded text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Delete">
+                    <button onClick={() => handleDelete(project.id, project.name)} disabled={isActioning} className="p-1 rounded text-rose-400/60 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer" title="Delete">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>

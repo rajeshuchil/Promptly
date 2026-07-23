@@ -5,7 +5,7 @@ import {
   Sparkles, Loader2, ArrowRight, LayoutDashboard,
   Globe, Briefcase, Users, BarChart3, Shield,
   BookOpen, Cpu, Zap, Clock, ExternalLink,
-  ChevronRight, X, CheckCircle
+  ChevronRight, X, CheckCircle, Star, Trash2
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -31,12 +31,164 @@ const QUICK_CHIPS = [
 ];
 
 const TEMPLATES = [
-  { id: "saas-dashboard",   label: "SaaS Dashboard",      icon: LayoutDashboard, desc: "Metrics, charts, and sidebar" },
-  { id: "saas-landing",     label: "AI Startup Landing",  icon: Sparkles,        desc: "Landing with bento grid" },
-  { id: "portfolio-page",   label: "Portfolio Page",      icon: Briefcase,       desc: "Showcase and contact" },
-  { id: "pricing-page",     label: "Pricing Page",        icon: BarChart3,       desc: "Tiers and FAQ" },
-  { id: "login-page",       label: "Login Page",          icon: Shield,          desc: "Secure login form" },
+  {
+    id: "saas-dashboard",
+    label: "SaaS Dashboard",
+    icon: LayoutDashboard,
+    desc: "Metrics, charts, and sidebar",
+    category: "Dashboard",
+    componentsCount: 18,
+    difficulty: "Advanced",
+    estTime: "12s",
+    popular: true,
+  },
+  {
+    id: "saas-landing",
+    label: "AI Startup Landing",
+    icon: Sparkles,
+    desc: "Landing with bento grid",
+    category: "Landing Page",
+    componentsCount: 14,
+    difficulty: "Standard",
+    estTime: "10s",
+    popular: true,
+  },
+  {
+    id: "portfolio-page",
+    label: "Portfolio Page",
+    icon: Briefcase,
+    desc: "Showcase and contact",
+    category: "Portfolio",
+    componentsCount: 10,
+    difficulty: "Simple",
+    estTime: "8s",
+    popular: false,
+  },
+  {
+    id: "pricing-page",
+    label: "Pricing Page",
+    icon: BarChart3,
+    desc: "Tiers and FAQ",
+    category: "Pricing",
+    componentsCount: 12,
+    difficulty: "Standard",
+    estTime: "9s",
+    popular: false,
+  },
+  {
+    id: "login-page",
+    label: "Login Page",
+    icon: Shield,
+    desc: "Secure login form",
+    category: "Authentication",
+    componentsCount: 8,
+    difficulty: "Simple",
+    estTime: "7s",
+    popular: false,
+  },
 ];
+
+const TEMPLATE_GRADIENTS: Record<string, string> = {
+  "saas-landing": "from-indigo-500 via-indigo-600 to-indigo-900",
+  "saas-dashboard": "from-violet-500 via-violet-600 to-violet-900",
+  "pricing-page": "from-emerald-500 via-emerald-600 to-emerald-900",
+  "login-page": "from-blue-500 via-blue-600 to-blue-900",
+  "portfolio-page": "from-neutral-500 via-neutral-600 to-neutral-900",
+};
+
+function getTemplateGradient(id: string) {
+  return TEMPLATE_GRADIENTS[id] ?? "from-brand-600 to-brand-900";
+}
+
+function ProjectThumbnail({ name }: { name: string }) {
+  const hash = name.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+  const gradients = [
+    "from-indigo-600/20 via-purple-600/10 to-transparent",
+    "from-emerald-600/20 via-teal-600/10 to-transparent",
+    "from-violet-600/20 via-pink-600/10 to-transparent",
+    "from-blue-600/20 via-sky-600/10 to-transparent",
+    "from-amber-600/20 via-orange-600/10 to-transparent",
+  ];
+  const gradient = gradients[hash % gradients.length];
+  const layoutStyle = hash % 3;
+
+  return (
+    <div className="h-28 bg-[#09090b] relative border-b border-white/5 overflow-hidden flex items-center justify-center group-hover:bg-[#060608] transition-colors duration-300">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:8px_8px]" />
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-80`} />
+
+      <div className="w-4/5 h-4/5 rounded bg-black/45 border border-white/5 p-2 flex flex-col gap-1.5 shadow-2xl relative select-none transform translate-y-2 group-hover:translate-y-1 transition-all duration-300">
+        {layoutStyle === 0 ? (
+          <div className="flex gap-2 h-full">
+            <div className="w-6 shrink-0 h-full bg-white/5 border border-white/5 rounded-sm flex flex-col gap-1 p-0.5">
+              <div className="w-2.5 h-1 bg-white/30 rounded-full" />
+              <div className="w-4 h-0.5 bg-white/10 rounded-full" />
+              <div className="w-3 h-0.5 bg-white/10 rounded-full" />
+            </div>
+            <div className="flex-1 flex flex-col gap-1.5">
+              <div className="flex justify-between items-center">
+                <div className="w-8 h-1.5 bg-white/20 rounded-full" />
+                <div className="w-4 h-1.5 bg-white/10 rounded-full" />
+              </div>
+              <div className="grid grid-cols-2 gap-1 flex-1">
+                <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col justify-between">
+                  <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+                  <div className="w-6 h-1 bg-violet-400/40 rounded-full" />
+                </div>
+                <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col justify-between">
+                  <div className="w-3 h-0.5 bg-white/20 rounded-full" />
+                  <div className="w-5 h-1 bg-emerald-400/40 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : layoutStyle === 1 ? (
+          <div className="flex flex-col items-center justify-center text-center gap-1.5 h-full py-1">
+            <div className="w-4 h-1 bg-violet-400/30 rounded-full" />
+            <div className="w-16 h-2 bg-white/25 rounded-full" />
+            <div className="w-20 h-1 bg-white/10 rounded-full" />
+            <div className="w-16 h-1 bg-white/10 rounded-full" />
+            <div className="flex gap-1 mt-1">
+              <div className="w-6 h-2 bg-violet-500/40 rounded-sm border border-violet-500/20" />
+              <div className="w-6 h-2 bg-white/5 rounded-sm border border-white/10" />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 h-full justify-between">
+            <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+            <div className="grid grid-cols-3 gap-1.5 flex-1">
+              <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col gap-0.5 justify-center">
+                <div className="w-2.5 h-2.5 rounded bg-white/10" />
+                <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+              </div>
+              <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col gap-0.5 justify-center">
+                <div className="w-2.5 h-2.5 rounded bg-white/10" />
+                <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+              </div>
+              <div className="rounded bg-white/5 border border-white/5 p-1 flex flex-col gap-0.5 justify-center">
+                <div className="w-2.5 h-2.5 rounded bg-white/10" />
+                <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="absolute inset-0 bg-neutral-950/0 group-hover:bg-neutral-950/10 transition-colors duration-300" />
+    </div>
+  );
+}
+
+const getStatusBadgeColor = (status: string) => {
+  switch (status) {
+    case "deployed": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+    case "deploying":
+    case "generating": return "bg-sky-500/10 text-sky-400 border-sky-500/20 animate-pulse";
+    case "failed": return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+    case "generated": return "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+    default: return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+  }
+};
 
 export function BuildWorkspace() {
   const [prompt, setPrompt] = useState("");
@@ -57,7 +209,7 @@ export function BuildWorkspace() {
   };
 
   const { usageStats, loadUsage } = useUsage();
-  const { projects, loadProjects } = useProjects();
+  const { projects, loadProjects, deleteProject, toggleFavorite } = useProjects();
 
   // Pre-fill from template gallery
   useEffect(() => {
@@ -321,28 +473,56 @@ export function BuildWorkspace() {
       {/* ── Lower Gallery and Projects Area ──────────────────────────────── */}
       <div className="max-w-4xl mx-auto px-4 py-16">
         {/* ── Template Gallery (SECONDARY HIERARCHY) ───────────────────────── */}
-        <div className="mb-14">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-sm font-semibold text-white">Start from a Template</h2>
+        <div className="mb-16 border-b border-white/5 pb-16">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <div>
+              <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-violet-400" />
+                Start from a Template
+              </h2>
+              <p className="text-xs text-neutral-400 mt-1">
+                Jumpstart your website with a pre-configured component library and styled system.
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {TEMPLATES.map((tmpl) => {
               const Icon = tmpl.icon;
               return (
                 <motion.button
                   key={tmpl.id}
-                  whileHover={{ y: -2 }}
-                  transition={{ type: "spring", stiffness: 450, damping: 28 }}
+                  whileHover={{ y: -3 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   onClick={() => handleChip(`Generate a ${tmpl.label.toLowerCase()} — ${tmpl.desc}`)}
                   disabled={isGenerating}
-                  className="group text-left rounded-xl border border-white/10 bg-[#111111] p-5 shadow-elevation-1 hover:border-[#6ee7b7]/30 hover:bg-[#161616] hover:shadow-elevation-2 transition-all duration-200 cursor-pointer"
+                  className="group text-left rounded-2xl border border-white/5 bg-surface-900/40 backdrop-blur-md p-5 shadow-lg shadow-black/40 hover:border-white/15 hover:bg-surface-800/50 hover:shadow-xl hover:shadow-black/60 transition-all duration-300 cursor-pointer flex flex-col justify-between"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mb-3.5 group-hover:border-[#6ee7b7]/30 transition-colors">
-                    <Icon className="w-4 h-4 text-[#6ee7b7]" />
+                  <div>
+                    {/* Icon container */}
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 group-hover:scale-105 group-hover:border-white/20 transition-all duration-300">
+                      <Icon className="w-4.5 h-4.5 text-white/70 group-hover:text-white transition-colors" />
+                    </div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <p className="text-xs font-bold text-white tracking-tight">{tmpl.label}</p>
+                      {tmpl.popular && (
+                        <span className="text-[8px] font-bold uppercase tracking-wider bg-violet-500/10 border border-violet-500/20 px-1.5 py-0.5 rounded-full text-violet-300">
+                          Popular
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-neutral-450 leading-relaxed min-h-[30px]">{tmpl.desc}</p>
                   </div>
-                  <p className="text-xs font-semibold text-white mb-1">{tmpl.label}</p>
-                  <p className="text-[10px] text-neutral-400 leading-normal">{tmpl.desc}</p>
+                  {/* Rich Metadata Row */}
+                  <div className="flex items-center gap-1.5 text-[9px] text-neutral-500 mt-4 border-t border-white/5 pt-2.5">
+                    <span>{tmpl.category}</span>
+                    <span className="text-neutral-700">•</span>
+                    <span>{tmpl.componentsCount} Comp</span>
+                    <span className="text-neutral-700">•</span>
+                    <span>{tmpl.difficulty}</span>
+                    <span className="text-neutral-700">•</span>
+                    <span>{tmpl.estTime}</span>
+                  </div>
                 </motion.button>
               );
             })}
@@ -352,8 +532,16 @@ export function BuildWorkspace() {
         {/* ── Recent Projects (TERTIARY HIERARCHY) ─────────────────────────── */}
         {recentProjects.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-semibold text-white">Recent Projects</h2>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-violet-400" />
+                  Recent Projects
+                </h2>
+                <p className="text-xs text-neutral-400 mt-1">
+                  Continue refining or previewing your recently generated websites.
+                </p>
+              </div>
               <Link
                 href="/projects"
                 className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white transition-colors"
@@ -362,43 +550,80 @@ export function BuildWorkspace() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {recentProjects.map((project) => (
-                <motion.button
+                <div
                   key={project.id}
-                  whileHover={{ y: -2 }}
-                  transition={{ type: "spring", stiffness: 450, damping: 28 }}
-                  onClick={() => handleSelectProject(project.id)}
-                  className="group text-left rounded-xl border border-white/10 bg-[#111111] p-4 shadow-elevation-1 hover:border-white/20 hover:bg-[#161616] hover:shadow-elevation-2 transition-all duration-200 cursor-pointer"
+                  className="relative group text-left rounded-2xl border border-white/5 bg-surface-900/40 backdrop-blur-md transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg shadow-black/40 hover:shadow-xl hover:shadow-black/60 hover:-translate-y-0.5 animate-fade-in cursor-pointer"
+                  onClick={() => handleSelectProject(project.id, project.generatedHtml)}
                 >
-                  {/* Mini preview thumbnail */}
-                  <div className="w-full h-24 rounded-lg bg-[#161618] border border-white/5 mb-3.5 overflow-hidden flex items-center justify-center relative">
-                    {project.generatedHtml ? (
-                      <iframe
-                        srcDoc={project.generatedHtml}
-                        className="w-[800px] h-[600px] pointer-events-none origin-top-left scale-[0.16] -translate-x-[344px] -translate-y-[258px]"
-                        title={project.name}
-                      />
-                    ) : (
-                      <Globe className="w-6 h-6 text-neutral-600" />
-                    )}
-                  </div>
+                  {/* Star Toggle Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(project.id, !!project.isFavorite);
+                    }}
+                    className="absolute top-3 right-3 p-1.5 rounded-full bg-black/55 border border-white/5 text-white/50 hover:text-amber-400 hover:bg-black/85 transition-all z-20 cursor-pointer"
+                    title={project.isFavorite ? "Remove Favorite" : "Mark as Favorite"}
+                  >
+                    <Star className={`w-3.5 h-3.5 ${project.isFavorite ? "fill-amber-400 text-amber-400" : ""}`} />
+                  </button>
 
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-white truncate group-hover:text-[#6ee7b7] transition-colors">
+                  {/* Thumbnail / Abstract Wireframe */}
+                  <ProjectThumbnail name={project.name} />
+
+                  {/* Content */}
+                  <div className="p-4.5 space-y-2.5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-white truncate group-hover:text-violet-400 transition-colors tracking-tight">
                         {project.name}
-                      </p>
-                      <p className="text-[10px] text-neutral-400 mt-1 flex items-center gap-1.5">
-                        <Clock className="w-3 h-3" />
-                        {new Date(project.updatedAt).toLocaleDateString()}
+                      </h4>
+                      <p className="text-[10px] text-neutral-450 line-clamp-2 leading-relaxed min-h-[30px] mt-1">
+                        {project.prompt}
                       </p>
                     </div>
-                    <span className="shrink-0 text-[9px] px-2 py-0.5 rounded-full border border-green-500/20 bg-green-500/10 text-green-400 font-medium">
-                      Live
-                    </span>
+
+                    {/* Badges Row */}
+                    <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-white/5">
+                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold border uppercase tracking-wider ${getStatusBadgeColor(project.deploymentState ?? "idle")}`}>
+                        {project.deploymentState ?? "idle"}
+                      </span>
+                      {project.aiModel && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold border border-white/5 bg-white/5 text-neutral-450">
+                          <Cpu className="w-2.5 h-2.5 text-neutral-500" />
+                          {project.aiModel}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </motion.button>
+
+                  {/* Footer */}
+                  <div className="px-4.5 py-2.5 border-t border-white/5 bg-black/15 flex items-center justify-between text-[9px] text-neutral-500">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Clock className="w-3 h-3 text-neutral-600" />
+                      {new Date(project.updatedAt).toLocaleDateString()}
+                    </span>
+
+                    {/* Actions Menu */}
+                    <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <Link href={`/projects/${project.id}`} title="View Details" onClick={(e) => e.stopPropagation()}>
+                        <button className="p-1 rounded text-white/50 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      </Link>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteProject(project.id, selectedProjectId);
+                        }}
+                        className="p-1 rounded text-rose-500/60 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        title="Delete project"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
