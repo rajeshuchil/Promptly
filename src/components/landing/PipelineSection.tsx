@@ -88,8 +88,8 @@ export function PipelineSection() {
   }, [steps.length]);
 
   return (
-    <section id="pipeline" className="relative z-10 px-6 py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
-      <div className="text-center mb-16">
+    <section id="pipeline" className="relative z-10 px-4 sm:px-6 py-16 sm:py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
+      <div className="text-center mb-12 sm:mb-16">
         <span className="text-xs font-semibold tracking-wider text-[#6ee7b7] uppercase">Pipeline Architecture</span>
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-2 mb-4 text-white">
           A production-grade AI compiler pipeline
@@ -140,7 +140,7 @@ export function PipelineSection() {
 
         {/* Detailed Inspector Display Card (Right side) */}
         <div className="lg:col-span-7 flex flex-col">
-          <div className="bg-[#1B1B1B] rounded border border-white/10 p-8 flex-1 flex flex-col justify-between relative overflow-hidden">
+          <div className="bg-[#1B1B1B] rounded border border-white/10 p-5 sm:p-8 flex-1 flex flex-col justify-between relative overflow-hidden">
             <div>
               {/* Card Header */}
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-6 text-[#6ee7b7]">
@@ -176,12 +176,12 @@ export function PipelineSection() {
             </div>
 
             {/* Simulated Live Terminal output at footer */}
-            <div className="mt-12 bg-[#161616] rounded p-3.5 border border-white/5 font-mono text-[11px] text-green-400/80 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-ping" />
-                <span>[stage_{steps[activeStep].title.toLowerCase()}] compiling successfully...</span>
+            <div className="mt-8 sm:mt-12 bg-[#161616] rounded p-3.5 border border-white/5 font-mono text-[11px] text-green-400/80 flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-2 truncate min-w-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-ping shrink-0" />
+                <span className="truncate">[stage_{steps[activeStep].title.toLowerCase()}] compiling successfully...</span>
               </span>
-              <span className="text-neutral-400 text-[9px]">100% telemetry healthy</span>
+              <span className="text-neutral-400 text-[9px] shrink-0">100% telemetry healthy</span>
             </div>
           </div>
         </div>

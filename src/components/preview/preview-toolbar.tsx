@@ -104,11 +104,11 @@ export function PreviewToolbar({
 
   return (
     <div
-      className="flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)] select-none"
+      className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-[var(--color-border)] select-none gap-2 overflow-x-auto scrollbar-none"
       style={{ background: "var(--color-surface-900)" }}
     >
       {/* Device Mode Selectors */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 shrink-0">
         <Button
           variant={deviceMode === "desktop" ? "default" : "ghost"}
           size="sm"
@@ -144,7 +144,7 @@ export function PreviewToolbar({
           href={deployedUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden lg:flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold hover:bg-emerald-500/20 transition-all"
+          className="hidden lg:flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold hover:bg-emerald-500/20 transition-all shrink-0"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
           Live Website
@@ -153,7 +153,7 @@ export function PreviewToolbar({
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <Button
           variant="ghost"
           size="sm"
@@ -208,7 +208,7 @@ export function PreviewToolbar({
               title="Edit this page using AI"
             >
               <Sparkles className="w-3.5 h-3.5 text-violet-400 fill-violet-400/20" />
-              <span>Edit with AI</span>
+              <span className="hidden sm:inline">Edit with AI</span>
             </Button>
           </Link>
         )}

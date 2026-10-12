@@ -50,7 +50,7 @@ export function TechStackSection() {
   ];
 
   return (
-    <section className="relative z-10 px-6 py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
+    <section className="relative z-10 px-4 sm:px-6 py-16 sm:py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
       <div className="text-center mb-16">
         <span className="text-xs font-semibold tracking-wider text-[#6ee7b7] uppercase">Architecture Stack</span>
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-2 mb-4 text-white">

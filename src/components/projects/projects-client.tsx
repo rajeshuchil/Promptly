@@ -161,8 +161,8 @@ export function ProjectsClient() {
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#111111]/80 backdrop-blur-sm p-4 rounded-xl border border-white/[0.08] shadow-sm">
-        <div className="relative w-full md:max-w-xs">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between bg-[#111111]/80 backdrop-blur-sm p-3.5 sm:p-4 rounded-xl border border-white/[0.08] shadow-sm">
+        <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
           <input
             type="text"
@@ -178,10 +178,10 @@ export function ProjectsClient() {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-3 w-full md:w-auto items-center justify-end">
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap gap-2.5 sm:gap-3 w-full sm:w-auto items-center justify-start sm:justify-end">
+          <div className="flex items-center gap-1.5 flex-1 sm:flex-none">
             <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-            <select className="h-8 px-3 text-xs rounded-lg bg-[#151515] border border-white/[0.08] text-neutral-200 transition-colors duration-150 hover:bg-[#1a1a1a] hover:border-white/15 focus:outline-none focus:ring-0 focus:border-white/25 cursor-pointer" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <select className="w-full sm:w-auto h-8 px-2.5 sm:px-3 text-xs rounded-lg bg-[#151515] border border-white/[0.08] text-neutral-200 transition-colors duration-150 hover:bg-[#1a1a1a] hover:border-white/15 focus:outline-none focus:ring-0 focus:border-white/25 cursor-pointer" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="all" className="bg-[#151515] text-neutral-200">All Statuses</option>
               <option value="deployed" className="bg-[#151515] text-neutral-200">Deployed</option>
               <option value="deploying" className="bg-[#151515] text-neutral-200">Deploying</option>
@@ -190,9 +190,9 @@ export function ProjectsClient() {
             </select>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-1 sm:flex-none">
             <ArrowUpDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-            <select className="h-8 px-3 text-xs rounded-lg bg-[#151515] border border-white/[0.08] text-neutral-200 transition-colors duration-150 hover:bg-[#1a1a1a] hover:border-white/15 focus:outline-none focus:ring-0 focus:border-white/25 cursor-pointer" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <select className="w-full sm:w-auto h-8 px-2.5 sm:px-3 text-xs rounded-lg bg-[#151515] border border-white/[0.08] text-neutral-200 transition-colors duration-150 hover:bg-[#1a1a1a] hover:border-white/15 focus:outline-none focus:ring-0 focus:border-white/25 cursor-pointer" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="newest" className="bg-[#151515] text-neutral-200">Newest Created</option>
               <option value="oldest" className="bg-[#151515] text-neutral-200">Oldest Created</option>
               <option value="alphabetical" className="bg-[#151515] text-neutral-200">A-Z Name</option>
@@ -204,7 +204,7 @@ export function ProjectsClient() {
             type="button"
             onClick={loadProjects}
             disabled={isLoading}
-            className="h-8 px-3 inline-flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg bg-[#151515] border border-white/[0.08] text-neutral-200 hover:text-white hover:bg-[#1a1a1a] hover:border-white/15 focus:outline-none focus:ring-0 focus:border-white/25 active:bg-[#111] disabled:opacity-50 disabled:pointer-events-none transition-colors duration-150 cursor-pointer select-none"
+            className="h-8 px-3 inline-flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg bg-[#151515] border border-white/[0.08] text-neutral-200 hover:text-white hover:bg-[#1a1a1a] hover:border-white/15 focus:outline-none focus:ring-0 focus:border-white/25 active:bg-[#111] disabled:opacity-50 disabled:pointer-events-none transition-colors duration-150 cursor-pointer select-none shrink-0"
           >
             <RefreshCw className={`w-3 h-3 text-neutral-400 ${isLoading ? "animate-spin" : ""}`} />
             <span>Sync</span>
@@ -293,8 +293,8 @@ export function ProjectsClient() {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 group/title">
-                        <h4 className="text-xs font-bold text-white truncate max-w-[180px] tracking-tight">{project.name}</h4>
+                      <div className="flex items-center gap-1.5 group/title min-w-0">
+                        <h4 className="text-xs font-bold text-white truncate min-w-0 flex-1 tracking-tight">{project.name}</h4>
                         <button onClick={() => handleStartRename(project.id, project.name)} className="opacity-0 group-hover/title:opacity-100 p-0.5 rounded text-neutral-500 hover:text-white transition-opacity cursor-pointer" title="Rename">
                           <Edit className="w-3 h-3" />
                         </button>

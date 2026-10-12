@@ -5,8 +5,8 @@ import { Brain, Cpu, Zap, GitBranch, History, Globe, Layout, FolderKanban } from
 
 export function BentoSection() {
   return (
-    <section id="features" className="relative z-10 px-6 py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
-      <div className="text-center mb-16">
+    <section id="features" className="relative z-10 px-4 sm:px-6 py-16 sm:py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
+      <div className="text-center mb-12 sm:mb-16">
         <span className="text-xs font-semibold tracking-wider text-[#6ee7b7] uppercase">Capabilities</span>
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-2 mb-4 text-white">
           Engineered for developer productivity
@@ -17,10 +17,10 @@ export function BentoSection() {
       </div>
 
       {/* Bento Grid Container */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[240px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-auto lg:auto-rows-[240px]">
         
         {/* Card 1: AI Planning Engine (Large Box - 2 Cols, 2 Rows on large screens) */}
-        <div className="lg:col-span-2 lg:row-span-2 bg-[#1B1B1B] border border-white/10 rounded p-8 flex flex-col justify-between relative overflow-hidden group">
+        <div className="lg:col-span-2 lg:row-span-2 bg-[#1B1B1B] border border-white/10 rounded p-5 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
           <div className="flex items-start justify-between">
             <div className="w-10 h-10 rounded flex items-center justify-center bg-white/5 border border-white/10">
               <Brain className="w-5 h-5 text-[#6ee7b7]" />

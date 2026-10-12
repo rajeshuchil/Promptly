@@ -61,9 +61,9 @@ export default function LoginPage() {
       </div>
 
       {/* Main card */}
-      <div className="relative z-10 w-full max-w-md p-8 mx-4 rounded-3xl border border-surface-500/30 bg-surface-900/70 backdrop-blur-xl shadow-2xl animate-fade-in">
+      <div className="relative z-10 w-full max-w-md p-6 sm:p-8 mx-3 sm:mx-4 rounded-2xl sm:rounded-3xl border border-surface-500/30 bg-surface-900/70 backdrop-blur-xl shadow-2xl animate-fade-in">
         {/* Logo and header */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-6 sm:mb-8">
           <div
             className="flex items-center justify-center w-12 h-12 rounded-2xl animate-pulse-glow mb-4"
             style={{
@@ -72,10 +72,10 @@ export default function LoginPage() {
           >
             <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-brand-300 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-brand-300 bg-clip-text text-transparent">
             Welcome back
           </h1>
-          <p className="text-sm text-surface-300 mt-1.5 text-center">
+          <p className="text-xs sm:text-sm text-surface-300 mt-1.5 text-center">
             Sign in to your FastApp workspace to continue building.
           </p>
         </div>

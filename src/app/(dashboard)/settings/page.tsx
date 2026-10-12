@@ -70,7 +70,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-full overflow-y-auto">
-      <div className="max-w-3xl mx-auto px-6 py-10 space-y-6 animate-fade-in">
+      <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-6 animate-fade-in">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
@@ -83,16 +83,18 @@ export default async function SettingsPage() {
         </div>
 
         {/* Account info card */}
-        <div className="rounded border border-white/10 bg-[#111111] p-5">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-[#6ee7b7] text-[#161616] uppercase shrink-0">
-              {user.name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "U"}
+        <div className="rounded border border-white/10 bg-[#111111] p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-[#6ee7b7] text-[#161616] uppercase shrink-0">
+                {user.name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "U"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-white text-sm truncate">{user.name ?? "FastApp User"}</div>
+                <div className="text-xs text-neutral-400 truncate">{user.email}</div>
+              </div>
             </div>
-            <div>
-              <div className="font-semibold text-white text-sm">{user.name ?? "FastApp User"}</div>
-              <div className="text-xs text-neutral-400">{user.email}</div>
-            </div>
-            <div className="ml-auto px-2.5 py-0.5 rounded border border-white/10 bg-white/5 text-[9px] font-bold text-white uppercase tracking-wider">
+            <div className="self-start sm:self-auto shrink-0 px-2.5 py-0.5 rounded border border-white/10 bg-white/5 text-[9px] font-bold text-white uppercase tracking-wider">
               Free Plan
             </div>
           </div>
@@ -105,27 +107,27 @@ export default async function SettingsPage() {
               {section.href ? (
                 <a
                   href={section.href}
-                  className="flex items-center gap-4 p-4 rounded border border-white/10 bg-[#111111] hover:bg-[#161616] hover:border-white/20 transition-all group"
+                  className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 rounded border border-white/10 bg-[#111111] hover:bg-[#161616] hover:border-white/20 transition-all group"
                 >
                   <div className="w-9 h-9 rounded flex items-center justify-center bg-white/5 border border-white/10 shrink-0">
                     <section.icon className="w-4 h-4 text-[#6ee7b7]" />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm text-white">{section.title}</div>
-                    <div className="text-xs text-neutral-500 mt-0.5">{section.desc}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm text-white truncate">{section.title}</div>
+                    <div className="text-xs text-neutral-500 mt-0.5 line-clamp-2">{section.desc}</div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-white transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-white transition-colors shrink-0" />
                 </a>
               ) : (
-                <div className="flex items-center gap-4 p-4 rounded border border-white/5 bg-[#111111] opacity-50 cursor-not-allowed">
+                <div className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 rounded border border-white/5 bg-[#111111] opacity-50 cursor-not-allowed">
                   <div className="w-9 h-9 rounded flex items-center justify-center bg-white/5 border border-white/5 shrink-0">
                     <section.icon className="w-4 h-4 text-neutral-500" />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm text-white">{section.title}</div>
-                    <div className="text-xs text-neutral-500 mt-0.5">{section.desc}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm text-white truncate">{section.title}</div>
+                    <div className="text-xs text-neutral-500 mt-0.5 line-clamp-2">{section.desc}</div>
                   </div>
-                  <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-white/10 text-neutral-400 bg-white/5">
+                  <span className="shrink-0 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-white/10 text-neutral-400 bg-white/5">
                     Coming Soon
                   </span>
                 </div>

@@ -6,8 +6,8 @@ import { Wand2, Sparkles, CheckCircle2 } from "lucide-react";
 
 export function FinalCTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
-    <section className="relative z-10 px-6 py-24 max-w-5xl mx-auto text-center bg-[#161616]">
-      <div className="bg-[#1B1B1B] rounded border border-white/10 p-12 md:p-16 relative overflow-hidden shadow-lg">
+    <section className="relative z-10 px-4 sm:px-6 py-16 sm:py-24 max-w-5xl mx-auto text-center bg-[#161616]">
+      <div className="bg-[#1B1B1B] rounded border border-white/10 p-6 sm:p-12 md:p-16 relative overflow-hidden shadow-lg">
         
         {/* Sparkle badge */}
         <div className="w-12 h-12 rounded flex items-center justify-center mx-auto mb-8 bg-white/5 border border-white/10">

@@ -282,10 +282,10 @@ export function PreviewPanel({
         </div>
       ) : (
         /* RENDER PRE-GENERATION OR LOADING STATES */
-        <div className="flex-1 flex flex-col md:flex-row h-full min-h-[450px] bg-[var(--color-surface-950)] divide-y md:divide-y-0 md:divide-x divide-white/5">
+        <div className="flex-1 flex flex-col lg:flex-row h-full min-h-[450px] bg-[var(--color-surface-950)] divide-y lg:divide-y-0 lg:divide-x divide-white/5">
           {/* Left Panel: Checklist */}
           {status !== "idle" && status !== "error" ? (
-            <div className="w-full md:w-[320px] shrink-0 p-6 flex flex-col justify-between bg-[var(--color-surface-950)] text-left">
+            <div className="w-full lg:w-[320px] shrink-0 p-4 sm:p-6 flex flex-col justify-between bg-[var(--color-surface-950)] text-left">
               <div className="space-y-6">
                 <div className="flex items-center gap-2">
                   <Cpu className="w-5 h-5 text-[var(--color-brand-400)] animate-pulse animate-spin-slow" />
@@ -346,7 +346,7 @@ export function PreviewPanel({
               </div>
             </div>
           ) : status === "error" ? (
-            <div className="w-full md:w-[320px] shrink-0 p-6 flex flex-col justify-between bg-[var(--color-surface-950)] text-left">
+            <div className="w-full lg:w-[320px] shrink-0 p-4 sm:p-6 flex flex-col justify-between bg-[var(--color-surface-950)] text-left">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-rose-500">
                   <AlertTriangle className="w-5 h-5" />
@@ -359,7 +359,7 @@ export function PreviewPanel({
             </div>
           ) : (
             /* IDLE STATE LEFT PANEL */
-            <div className="w-full md:w-[320px] shrink-0 p-6 flex flex-col justify-center bg-[var(--color-surface-950)] text-left border-r border-white/5">
+            <div className="w-full lg:w-[320px] shrink-0 p-4 sm:p-6 flex flex-col justify-center bg-[var(--color-surface-950)] text-left border-b lg:border-b-0 lg:border-r border-white/5">
               <div className="space-y-4">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-brand-500)]/10 text-[var(--color-brand-400)]">
                   <Sparkles className="w-5 h-5" />

@@ -62,7 +62,7 @@ const faqs = [
 export default function HelpPage() {
   return (
     <div className="min-h-full overflow-y-auto">
-      <div className="max-w-3xl mx-auto px-6 py-10 space-y-8 animate-fade-in">
+      <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8 animate-fade-in">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
@@ -82,16 +82,16 @@ export default function HelpPage() {
           <div className="space-y-2">
             {guides.map((guide) => (
               <div key={guide.title}
-                className="flex items-center gap-4 p-4 rounded border border-white/10 bg-[#111111] hover:bg-[#161616] hover:border-white/20 transition-all group cursor-pointer">
+                className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 rounded border border-white/10 bg-[#111111] hover:bg-[#161616] hover:border-white/20 transition-all group cursor-pointer">
                 <div className="w-9 h-9 rounded flex items-center justify-center bg-white/5 border border-white/10 shrink-0">
                   <guide.icon className="w-4.5 h-4.5 text-[#6ee7b7]" />
                 </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm text-white">{guide.title}</div>
-                  <div className="text-xs text-neutral-400 mt-0.5">{guide.desc}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm text-white truncate">{guide.title}</div>
+                  <div className="text-xs text-neutral-400 mt-0.5 line-clamp-2">{guide.desc}</div>
                 </div>
-                <span className="text-[10px] font-medium text-neutral-500 hidden sm:block">{guide.tag}</span>
-                <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-white transition-colors" />
+                <span className="text-[10px] font-medium text-neutral-500 hidden sm:block shrink-0">{guide.tag}</span>
+                <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-white transition-colors shrink-0" />
               </div>
             ))}
           </div>
@@ -106,8 +106,8 @@ export default function HelpPage() {
             {faqs.map((faq, i) => (
               <details key={i}
                 className="rounded border border-white/10 bg-[#111111] overflow-hidden group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-semibold text-sm text-white hover:text-[#6ee7b7] transition-colors">
-                  {faq.q}
+                <summary className="flex items-center justify-between p-3.5 sm:p-4 cursor-pointer list-none font-semibold text-sm text-white hover:text-[#6ee7b7] transition-colors">
+                  <span className="pr-2">{faq.q}</span>
                   <ChevronRight className="w-4 h-4 shrink-0 transition-transform group-open:rotate-90 text-neutral-500" />
                 </summary>
                 <div className="px-4 pb-4 text-xs text-neutral-450 leading-relaxed border-t border-white/5 pt-3">
@@ -128,27 +128,27 @@ export default function HelpPage() {
               href="https://github.com/rajeshuchil/Promptly/issues"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-3 p-4 rounded border border-white/10 bg-[#111111] hover:border-white/20 transition-all group"
+              className="flex items-center gap-3 p-3.5 sm:p-4 rounded border border-white/10 bg-[#111111] hover:border-white/20 transition-all group"
             >
-              <GitBranch className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
-              <div>
-                <div className="font-semibold text-sm text-white">GitHub Issues</div>
-                <div className="text-xs text-neutral-500">Report bugs or request features</div>
+              <GitBranch className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-sm text-white truncate">GitHub Issues</div>
+                <div className="text-xs text-neutral-500 truncate">Report bugs or request features</div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-neutral-600 ml-auto animate-pulse" />
+              <ExternalLink className="w-3.5 h-3.5 text-neutral-600 ml-auto animate-pulse shrink-0" />
             </a>
             <a
               href="https://github.com/rajeshuchil/Promptly"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-3 p-4 rounded border border-white/10 bg-[#111111] hover:border-white/20 transition-all group"
+              className="flex items-center gap-3 p-3.5 sm:p-4 rounded border border-white/10 bg-[#111111] hover:border-white/20 transition-all group"
             >
-              <BookOpen className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
-              <div>
-                <div className="font-semibold text-sm text-white">Source Code</div>
-                <div className="text-xs text-neutral-500">Explore the FastApp codebase</div>
+              <BookOpen className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-sm text-white truncate">Source Code</div>
+                <div className="text-xs text-neutral-500 truncate">Explore the FastApp codebase</div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-neutral-600 ml-auto animate-pulse" />
+              <ExternalLink className="w-3.5 h-3.5 text-neutral-600 ml-auto animate-pulse shrink-0" />
             </a>
           </div>
         </div>

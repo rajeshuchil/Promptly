@@ -94,9 +94,9 @@ const TEMPLATES = [
 export function TemplatesPage() {
   return (
     <div className="min-h-full overflow-y-auto">
-      <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
         {/* Header */}
-        <div className="mb-10">
+        <div className="mb-8 sm:mb-10">
           <h1 className="text-2xl font-bold text-white mb-2">Template Gallery</h1>
           <p className="text-sm text-neutral-400">
             Start from a pre-configured layout. Click a template to open it in the Generate workspace.

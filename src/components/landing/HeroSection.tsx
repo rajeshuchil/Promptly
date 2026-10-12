@@ -120,17 +120,17 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none z-6" />
 
       {/* Layer 4: Hero Content Container */}
-      <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-start text-left">
+      <div className="relative z-10 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-start text-left">
         {/* Sparkle badge */}
         <div
-          className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-[#1B1B1B] text-xs font-medium mb-8 text-[#6ee7b7]"
+          className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-[#1B1B1B] text-xs font-medium mb-8 text-[#6ee7b7] max-w-full"
         >
-          <Sparkles className="w-3.5 h-3.5 text-[#6ee7b7] animate-pulse" />
-          <span>Now Live: Multi-Model Routing via Gemini 2.5 Flash</span>
+          <Sparkles className="w-3.5 h-3.5 text-[#6ee7b7] animate-pulse shrink-0" />
+          <span className="truncate">Now Live: Multi-Model Routing via Gemini 2.5 Flash</span>
         </div>
 
         {/* Main Headline */}
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.15] max-w-none mb-8 text-white">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-[1.15] max-w-none mb-8 text-white">
           Generate Production Ready Pages <br />
           <Text3DFlip
             textClassName="text-[#6ee7b7]"
@@ -181,7 +181,7 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
           </div>
 
           {/* Console Content */}
-          <div className="p-6 font-mono text-xs min-h-[220px] flex flex-col justify-between relative bg-[#161616] rounded-b">
+          <div className="p-4 sm:p-6 font-mono text-xs min-h-[220px] flex flex-col justify-between relative bg-[#161616] rounded-b">
             <div>
               <div className="flex items-center gap-2 text-white/60 mb-4">
                 <span className="text-[#6ee7b7] font-bold">➜</span>
@@ -203,13 +203,13 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
               {mockLoading && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-xs text-[#6ee7b7]">
-                    <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin shrink-0" />
                     <span>Planner Orchestration in progress... structuring nodes.</span>
                   </div>
                   <div className="w-full bg-[#1B1B1B] rounded-full h-1 overflow-hidden">
                     <div className="bg-[#6ee7b7] h-full w-[60%] animate-pulse" />
                   </div>
-                  <div className="grid grid-cols-4 gap-2 text-[10px] text-neutral-400">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-neutral-400">
                     <div className="text-white">✓ Parse Prompt</div>
                     <div className="text-[#6ee7b7]">⟳ Generate JSON Blueprint</div>
                     <div>waiting...</div>
@@ -221,18 +221,18 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
               {mockSuccess && (
                 <div className="space-y-4 animate-fade-in">
                   <div className="flex items-center gap-2 text-xs text-green-400">
-                    <CheckCircle className="w-4 h-4" />
+                    <CheckCircle className="w-4 h-4 shrink-0" />
                     <span>Success: Production-ready page generated and deployed to edge sandbox!</span>
                   </div>
-                  <div className="rounded p-4 border border-white/5 bg-[#1B1B1B] flex items-center justify-between">
+                  <div className="rounded p-4 border border-white/5 bg-[#1B1B1B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <Code2 className="w-5 h-5 text-green-400" />
+                      <Code2 className="w-5 h-5 text-green-400 shrink-0" />
                       <div>
                         <div className="text-xs text-white font-semibold">saas-dashboard-mockup-v1</div>
                         <div className="text-[10px] text-white/50">Theme: Dashboard Dark · Type: Dashboard Page</div>
                       </div>
                     </div>
-                    <Link href="/login" className="text-xs font-semibold text-[#6ee7b7] hover:underline flex items-center gap-1">
+                    <Link href="/login" className="text-xs font-semibold text-[#6ee7b7] hover:underline flex items-center gap-1 shrink-0">
                       Open Workspace <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
@@ -241,8 +241,8 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 
               {!mockLoading && !mockSuccess && (
                 <div className="flex items-center justify-between text-[11px] text-neutral-400 mt-6 border-t border-white/5 pt-4">
-                  <span>Try suggestion: "{prompts[(currentPromptIdx + 1) % prompts.length].substring(0, 30)}..."</span>
-                  <span className="hidden sm:inline">Press Enter to dispatch ↵</span>
+                  <span className="truncate pr-2">Try suggestion: "{prompts[(currentPromptIdx + 1) % prompts.length].substring(0, 30)}..."</span>
+                  <span className="hidden sm:inline shrink-0">Press Enter to dispatch ↵</span>
                 </div>
               )}
             </div>
@@ -250,7 +250,7 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
         </div>
 
         {/* Stats list */}
-        <div className="flex flex-wrap items-start justify-start gap-x-16 gap-y-8 mt-4 text-sm text-neutral-400 max-w-4xl border-t border-white/5 pt-12 w-full">
+        <div className="flex flex-wrap items-start justify-start gap-x-8 sm:gap-x-16 gap-y-6 sm:gap-y-8 mt-4 text-sm text-neutral-400 max-w-4xl border-t border-white/5 pt-8 sm:pt-12 w-full">
           {[
             { value: "4 AI Providers", label: "Gemini · Claude · GPT · OpenRouter" },
             { value: "9 Page Templates", label: "Dashboard · Landing · Pricing · Billing..." },

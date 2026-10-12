@@ -50,7 +50,7 @@ export function TemplateSection() {
   ];
 
   return (
-    <section id="templates" className="relative z-10 px-6 py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
+    <section id="templates" className="relative z-10 px-4 sm:px-6 py-16 sm:py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-16">
         <div>
           <span className="text-xs font-semibold tracking-wider text-[#6ee7b7] uppercase">Templates</span>

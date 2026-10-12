@@ -10,14 +10,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full bg-black">
+    <div className="flex flex-col md:flex-row h-full w-full bg-black overflow-hidden">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main content area — children control their own padding/layout */}
       <main
         id="main-content"
-        className="flex-1 overflow-y-auto h-full"
+        className="flex-1 overflow-y-auto h-full min-w-0 w-full"
         style={{
           background:
             "linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 100%)",

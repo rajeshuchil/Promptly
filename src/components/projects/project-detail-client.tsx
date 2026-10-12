@@ -68,14 +68,14 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
   return (
     <div className="space-y-6">
       {/* Top Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link href="/projects">
           <Button variant="ghost" size="sm" className="text-white hover:text-white border border-transparent hover:border-[var(--color-border)] hover:bg-[var(--color-surface-800)] gap-1.5 h-8 text-xs">
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Projects
           </Button>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" className="h-8 border-[var(--color-border)] hover:bg-[var(--color-surface-800)] text-white hover:text-white text-xs gap-1.5" onClick={handleDuplicate} disabled={isLoading}>
             <Copy className="w-3.5 h-3.5" />Clone
           </Button>
@@ -208,9 +208,9 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
           </Card>
 
           {/* Deploy + Export */}
-          <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-5 shrink-0">
+          <Card className="border-[var(--color-border)] bg-[var(--color-surface-900)] p-4 sm:p-5 shrink-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2.5 border-r border-[var(--color-border)]/50 pr-4">
+              <div className="space-y-2.5 border-b sm:border-b-0 sm:border-r border-[var(--color-border)]/50 pb-4 sm:pb-0 pr-0 sm:pr-4">
                 <h4 className="text-xs font-extrabold text-white">Deploy Site</h4>
                 <p className="text-[10px] text-[var(--color-muted-fg)]">Publish your generated website to FastApp edge servers.</p>
                 {isDeploying ? (
@@ -233,7 +233,7 @@ export function ProjectDetailClient({ initialProject }: ProjectDetailClientProps
                 {deployError && <p className="text-[9px] text-rose-400 font-medium">{deployError}</p>}
               </div>
 
-              <div className="space-y-2.5 pl-2">
+              <div className="space-y-2.5 pl-0 sm:pl-2">
                 <h4 className="text-xs font-extrabold text-white">Export Code</h4>
                 <p className="text-[10px] text-[var(--color-muted-fg)]">Download the generated source code for editing.</p>
                 <div className="flex">

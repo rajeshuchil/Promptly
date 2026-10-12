@@ -27,7 +27,7 @@ export function ArchitectureSection() {
   ];
 
   return (
-    <section id="architecture" className="relative z-10 px-6 py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
+    <section id="architecture" className="relative z-10 px-4 sm:px-6 py-16 sm:py-24 max-w-7xl mx-auto border-t border-white/5 bg-[#161616]">
       <div className="text-center mb-16">
         <span className="text-xs font-semibold tracking-wider text-[#6ee7b7] uppercase">Engineering Overview</span>
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-2 mb-4 text-white">
@@ -42,12 +42,12 @@ export function ArchitectureSection() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
         {/* Code Visual (7 Columns) */}
-        <div className="lg:col-span-7 flex flex-col justify-center">
-          <div className="bg-[#1B1B1B] rounded border border-white/10 p-6 md:p-8 font-mono text-[11px] text-white/70 relative overflow-hidden shadow-lg">
-            <div className="absolute top-2 right-4 text-[9px] text-neutral-400 font-sans">fastapp-core/src/lib/pipeline.ts</div>
+        <div className="lg:col-span-7 flex flex-col justify-center min-w-0">
+          <div className="bg-[#1B1B1B] rounded border border-white/10 p-4 sm:p-6 md:p-8 font-mono text-[11px] text-white/70 relative overflow-hidden shadow-lg">
+            <div className="text-[9px] text-neutral-400 font-sans mb-3 text-right">fastapp-core/src/lib/pipeline.ts</div>
             
             {/* Code lines */}
-            <div className="space-y-1">
+            <div className="space-y-1 overflow-x-auto scrollbar-thin pb-2">
               <div><span className="text-blue-400">import</span> &#123; <span className="text-purple-400">PlannerService</span>, <span className="text-purple-400">GeneratorService</span> &#125; <span className="text-blue-400">from</span> <span className="text-green-400">"./services"</span>;</div>
               <div><span className="text-blue-400">import</span> &#123; <span className="text-purple-400">ASTValidator</span> &#125; <span className="text-blue-400">from</span> <span className="text-green-400">"./validator"</span>;</div>
               <div className="text-white/20">// -------------------------------------------------------------</div>

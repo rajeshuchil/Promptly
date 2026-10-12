@@ -6,7 +6,7 @@ import { Zap } from "lucide-react";
 
 export function LandingFooter() {
   return (
-    <footer className="relative z-10 border-t border-white/5 px-6 py-12 bg-[#161616]">
+    <footer className="relative z-10 border-t border-white/5 px-4 sm:px-6 py-10 sm:py-12 bg-[#161616]">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-neutral-400">
         
         {/* Brand info */}
@@ -21,7 +21,7 @@ export function LandingFooter() {
         </div>
 
         {/* Links & Copyright */}
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-4 sm:gap-6 text-center md:text-right">
           <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
           <a href="https://github.com/rajeshuchil/Promptly" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a>
           <span>© {new Date().getFullYear()} FastApp. All rights reserved.</span>

@@ -292,31 +292,32 @@ export function BuildWorkspace() {
     return (
       <div className="h-full flex flex-col">
         {/* Preview topbar */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-black/40 backdrop-blur-sm shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 border-b border-white/5 bg-black/40 backdrop-blur-sm shrink-0 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={closePreview}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors shrink-0"
             >
               <X className="w-3.5 h-3.5" />
-              Back to Generate
+              <span className="hidden sm:inline">Back to Generate</span>
+              <span className="sm:hidden">Back</span>
             </button>
-            <span className="w-px h-4 bg-white/10" />
+            <span className="w-px h-4 bg-white/10 shrink-0" />
             {isGenerating ? (
-              <span className="flex items-center gap-1.5 text-xs text-[#6ee7b7]">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                {generationMessage || "Generating…"}
+              <span className="flex items-center gap-1.5 text-xs text-[#6ee7b7] truncate min-w-0">
+                <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                <span className="truncate">{generationMessage || "Generating…"}</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-xs text-green-400">
-                <CheckCircle className="w-3.5 h-3.5" />
-                Generation complete
+              <span className="flex items-center gap-1.5 text-xs text-green-400 truncate min-w-0">
+                <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>Generation complete</span>
               </span>
             )}
           </div>
           <button
             onClick={closePreview}
-            className="h-7 px-3 rounded-md text-xs font-medium border border-white/10 text-white hover:bg-white/5 transition-colors"
+            className="h-7 px-2.5 sm:px-3 rounded-md text-xs font-medium border border-white/10 text-white hover:bg-white/5 transition-colors shrink-0"
           >
             New Page
           </button>
@@ -342,7 +343,7 @@ export function BuildWorkspace() {
   return (
     <div className="min-h-full overflow-y-auto bg-[#030303]">
       {/* ── Spotlight Prompt Area ────────────────────────────────────────── */}
-      <div className="relative w-full overflow-hidden border-b border-white/5 bg-[#070709] py-16 md:py-24">
+      <div className="relative w-full overflow-hidden border-b border-white/5 bg-[#070709] py-10 sm:py-16 md:py-24">
         {/* Subtle grid pattern background */}
         <div
           className="pointer-events-none absolute inset-0 select-none opacity-20"
@@ -359,15 +360,15 @@ export function BuildWorkspace() {
 
         <div className="max-w-4xl mx-auto px-4 relative z-10">
           {/* ── Hero ─────────────────────────────────────────────────────────── */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-white/[0.03] text-[10px] font-medium text-[#6ee7b7] mb-6">
-              <Zap className="w-3 h-3 animate-bounce-subtle" />
-              AI Pipeline: Planner → Generator → Validator → Preview
+          <div className="text-center mb-8 sm:mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-white/10 bg-white/[0.03] text-[10px] font-medium text-[#6ee7b7] mb-4 sm:mb-6 max-w-full">
+              <Zap className="w-3 h-3 animate-bounce-subtle shrink-0" />
+              <span className="truncate">AI Pipeline: Planner → Generator → Validator → Preview</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-[1.15] mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white tracking-tight leading-[1.2] mb-3 sm:mb-4 px-1">
               What page would you like to generate today?
             </h1>
-            <p className="text-sm md:text-base text-neutral-400 max-w-xl mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm md:text-base text-neutral-400 max-w-xl mx-auto leading-relaxed px-1">
               Describe the page you want to generate and FastApp will plan, generate, validate, and preview it.
             </p>
           </div>
@@ -395,7 +396,7 @@ export function BuildWorkspace() {
                 ref={textareaRef}
                 id="build-prompt"
                 rows={3}
-                className="w-full bg-transparent px-6 pt-5 pb-4 text-base text-white placeholder:text-neutral-500 focus:outline-none resize-none leading-relaxed font-sans"
+                className="w-full bg-transparent px-4 py-4 sm:px-6 sm:pt-5 sm:pb-4 text-sm sm:text-base text-white placeholder:text-neutral-500 focus:outline-none resize-none leading-relaxed font-sans"
                 placeholder='e.g. "Generate a modern SaaS landing page with hero, features bento grid, and pricing..."'
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -408,24 +409,24 @@ export function BuildWorkspace() {
               />
 
               {/* Bottom toolbar */}
-              <div className="flex items-center justify-between px-6 pb-4 pt-2 border-t border-white/5">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:pb-4 sm:pt-2 border-t border-white/5">
                 <div className="flex items-center gap-2 text-[10px] text-neutral-500 font-medium">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                   <span>Planner v2 Active</span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                   <span className="text-[10px] text-neutral-600 hidden sm:block font-mono">⌘↵ to generate</span>
                   <motion.button
                     type="submit"
                     disabled={isGenerating || !prompt.trim()}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group flex items-center gap-2 h-9 px-5 rounded-full bg-[#6ee7b7] text-[#161616] text-xs font-bold hover:bg-[#52dca6] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer shadow-[0_0_15px_rgba(110,231,183,0.25)] hover:shadow-[0_0_20px_rgba(110,231,183,0.4)]"
+                    className="group flex items-center justify-center gap-2 h-9 px-4 sm:px-5 w-full sm:w-auto rounded-full bg-[#6ee7b7] text-[#161616] text-xs font-bold hover:bg-[#52dca6] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer shadow-[0_0_15px_rgba(110,231,183,0.25)] hover:shadow-[0_0_20px_rgba(110,231,183,0.4)]"
                   >
                     {isGenerating ? (
-                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating Website…</>
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" /> Generating Website…</>
                     ) : (
-                      <><Sparkles className="w-3.5 h-3.5" /> Generate App <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" /></>
+                      <><Sparkles className="w-3.5 h-3.5 shrink-0" /> Generate App <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 shrink-0" /></>
                     )}
                   </motion.button>
                 </div>
@@ -471,9 +472,9 @@ export function BuildWorkspace() {
       </div>
 
       {/* ── Lower Gallery and Projects Area ──────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-4 py-16">
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-16">
         {/* ── Template Gallery (SECONDARY HIERARCHY) ───────────────────────── */}
-        <div className="mb-16 border-b border-white/5 pb-16">
+        <div className="mb-10 sm:mb-16 border-b border-white/5 pb-10 sm:pb-16">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <div>
               <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
